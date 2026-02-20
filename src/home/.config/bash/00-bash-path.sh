@@ -1,0 +1,58 @@
+#
+# Script: ~/.config/bash/bash-path.sh
+# Validar diretórios e PATH
+# Depende de funções definidas em bash-functions.sh
+# =============================================================================
+
+# Lista de diretórios para criar Junctions em C:\Users\%USERNAME%
+dot_dirs=(".config" ".local" ".ssh" ".aws")
+
+# Função para garantir Junctions
+ensure_junction() {
+    local folder="$1"
+    local path_c="$USERPROFILE/$folder"
+    local win_c="C:\\Users\\$USERNAME\\$folder"
+    local win_d="D:\\$USERNAME\\home\\$folder"
+
+    if [ ! -L "$path_c" ]; then
+        if [ -e "$path_c" ]; then
+            displayFailure "Windows"   "Remover diretório ou arquivo '$win_c'"
+            displayInfo "Por que?"     "Em C:, esse path deveria ser uma JUNCTION no Windows"
+            displayInfo "O que ele é?" "$(stat -c '%F' "$path_c" 2>/dev/null)"
+            displayInfo "O que fazer?" "Após remover manualmente, fechar esta sessão e abrir uma nova"
+            displayInfo "Sugestão"     "Combine conteúdo com '$win_d' antes de remover"
+            echo
+        else
+            local output
+            output=$(cmd //c "mklink /J $win_c $win_d" 2>&1)
+            [ $? -eq 0 ] && displaySuccess "Windows" "$output" || displayFailure "Windows" "$output"
+        fi
+    fi
+}
+
+# Criar JUNCTIONS para a lista de diretórios
+for dir in "${dot_dirs[@]}"; do
+    ensure_junction "$dir"
+done
+
+# Adicionar $HOME/.local/bin ao início do PATH
+local_bin="$HOME/.local/bin"
+if [[ ":$PATH:" != *":$local_bin:"* ]]; then
+    displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(path2win "$local_bin")\" ao PATH"
+    export PATH="$local_bin:$PATH"
+fi
+
+# Validar que instaladores do python (Windows Store) estão desabilitados: vamos usar python gerenciado pelo 'uv'
+for py_exe in "python" "python3"; do
+    py_path=$(which "$py_exe" 2>/dev/null)
+    store_path=$(path2lin "$LOCALAPPDATA/Microsoft/WindowsApps/$py_exe")
+    
+    if [[ "$py_path" == "$store_path" ]]; then
+        displayFailure "Windows" "Config > Aliases de execução: desabilitar '$py_exe'"
+    fi
+done
+
+
+#--------------------------------------------------------------------------------
+#--- Final do script ~/.config/bash-path.sh
+#--------------------------------------------------------------------------------

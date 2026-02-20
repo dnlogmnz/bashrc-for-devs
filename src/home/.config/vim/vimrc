@@ -1,0 +1,33 @@
+" ---------------------------
+" --- INICIO DO BLOCO XDG ---
+" ---------------------------
+
+" Define a pasta onde deve ficar este arquivo via variável de ambiente.
+" Se você levar esse .vimrc para outro computador com Linux ou macOS, ele funcionará sem ajustes manuais.
+let $VIM_STATE = expand($XDG_STATE_HOME . '/vim')
+
+" Cria automaticamente a árvore de diretórios para evitar erros de 'permissão negada' ou 'pasta inexistente'
+if !isdirectory($VIM_STATE)
+    call mkdir($VIM_STATE . '/undo', 'p')
+    call mkdir($VIM_STATE . '/swap', 'p')
+    call mkdir($VIM_STATE . '/backup', 'p')
+endif
+
+" Centraliza arquivos temporários (swap/undo/info) em local invisível, mantendo o $HOME totalmente limpo
+set viminfo+=n$VIM_STATE/viminfo
+let &undodir = $VIM_STATE . '/undo//'
+let &directory = $VIM_STATE . '/swap//'
+let &backupdir = $VIM_STATE . '/backup//'
+set undofile
+
+" Garante que o vim sempre salve arquivos no formato utf-8
+set encoding=utf-8      " Define a codificação interna do Vim
+set fileencoding=utf-8  " Garante que o arquivo seja gravado em UTF-8
+set fileformat=unix     " Força o fim de linha como LF (padrão Unix)
+
+" --------------------------
+" --- FINAL DO BLOCO XDG ---
+" --------------------------
+
+" Esquema de cores
+colorscheme torte

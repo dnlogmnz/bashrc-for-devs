@@ -1,0 +1,15 @@
+# 1. Tratar todos os arquivos de texto como 'text' e forçar a normalização para LF no repositório
+* text=auto eol=lf
+
+# 2. Garantir que extensões específicas de código sempre usem LF, mesmo no Windows
+*.sh      text eol=lf
+*.py      text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.config  text eol=lf
+*.vimrc   text eol=lf
+
+# 3. Identificar arquivos binários para que o Git não tente converter quebras de linha neles
+*.jpg     binary
+*.png     binary
+*.exe     binary
