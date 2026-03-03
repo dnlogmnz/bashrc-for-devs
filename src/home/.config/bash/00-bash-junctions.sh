@@ -1,6 +1,6 @@
 #
-# Script: ~/.config/bash/bash-path.sh
-# Validar diretórios e PATH
+# Script: ~/.config/bash/bash-junctions.sh
+# Validar diretórios e PATH para uso do Git Bash
 # Depende de funções definidas em bash-functions.sh
 # =============================================================================
 
@@ -46,5 +46,5 @@ fi
 unset -f ensure_junction
 
 #--------------------------------------------------------------------------------
-#--- Final do script ~/.config/bash-path.sh
+#--- Final do script bash-junctions.sh
 #--------------------------------------------------------------------------------

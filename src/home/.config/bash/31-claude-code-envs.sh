@@ -1,10 +1,12 @@
 #
-#Script: ~/.config/bash/node-envs.sh
-# Variáveis de ambiente para o Bash
+#Script: ~/.config/bash/claude-code-envs.sh
+# Variáveis de ambiente para o Claude Code
 # ==========================================================================================
 
-export NODE_REPL_HISTORY="$XDG_DATA_HOME/node_repl_history"
+_GIT_BASH_EXE="`echo $(/bin/df / | grep ' /$' | awk '{print $1}')${BASH}.exe | tr '/' '\\\'`"
+export CLAUDE_CODE_GIT_BASH_PATH="${_GIT_BASH_EXE}"
+
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script ~/.config/node-envs.sh
+#--- Final do script claude-code-envs.sh
 #-------------------------------------------------------------------------------------------

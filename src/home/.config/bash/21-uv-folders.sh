@@ -1,5 +1,5 @@
 #
-# Script: ~/.config/bash/uv-path.sh
+# Script: ~/.config/bash/uv-folders.sh
 # Validar diretórios e PATH para o UV (Python Package Manager)
 # Depende de funções definidas em bash-functions.sh
 # ==========================================================================================
@@ -41,5 +41,5 @@ for py_exe in "python" "python3"; do
 done
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script ~/.config/uv-path.sh
+#--- Final do script uv-folders.sh
 #-------------------------------------------------------------------------------------------

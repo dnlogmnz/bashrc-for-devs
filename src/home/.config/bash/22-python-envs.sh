@@ -13,5 +13,5 @@ export PYTHONIOENCODING="utf-8"     # Logs com caracteres especiais sem quebrar 
 export PYTHONDONTWRITEBYTECODE="1"  # Não cria arquivos .pyc (bytecode): acelera import de módulos
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script ~/.config/python-envs.sh
+#--- Final do script python-envs.sh
 #-------------------------------------------------------------------------------------------

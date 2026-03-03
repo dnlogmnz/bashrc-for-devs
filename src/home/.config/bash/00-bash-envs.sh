@@ -27,5 +27,5 @@ export LESSHISTFILE="$XDG_STATE_HOME/less/history"
 export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script ~/.config/bash-envs.sh
+#--- Final do script bash-envs.sh
 #-------------------------------------------------------------------------------------------

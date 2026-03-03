@@ -12,5 +12,5 @@ export CLOUDSDK_CORE_DISABLE_USAGE_REPORTING=true
 # unset ORIGINAL_PATH ORIGINAL_TEMP ORIGINAL_TMP
 
 #--------------------------------------------------------------------------------
-#--- Final do script ~/.config/extras.sh
+#--- Final do script extras.sh
 #--------------------------------------------------------------------------------

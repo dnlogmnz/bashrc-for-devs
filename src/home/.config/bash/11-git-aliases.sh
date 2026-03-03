@@ -8,5 +8,5 @@ alias git-last="git log -1 HEAD"
 alias git-unstage="git reset HEAD --"
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script ~/.config/git-aliases.sh
+#--- Final do script git-aliases.sh
 #-------------------------------------------------------------------------------------------

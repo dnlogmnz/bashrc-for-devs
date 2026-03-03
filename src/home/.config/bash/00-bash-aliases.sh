@@ -9,5 +9,5 @@ alias grep="/usr/bin/grep --color=auto"
 alias npp='/usr/bin/start /d/$USERNAME/Apps/Notepad++/notepad++.exe "$@"'
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script ~/.config/bash-aliases.sh
+#--- Final do script bash-aliases.sh
 #-------------------------------------------------------------------------------------------
