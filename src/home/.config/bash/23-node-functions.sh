@@ -1,435 +1,239 @@
 #
 # Script: ~/.config/bash/node-functions.sh
-# Funções para facilitar o uso do Node.js
+# Funções para gerenciar versões do Node.js (substituto leve do nvm)
+# Depende de funções e variáveis definidas em:
+#   - bash-functions.sh  (displayAction, displayInfo, displaySuccess, displayFailure, displayWarning, path2win)
+#   - node-envs.sh       (NODE_HOME, NODE_CURRENT)
 # ==========================================================================================
 
-# [to-do] # Configurações ao "ativar" uma versão
-# [to-do] export NPM_CONFIG_PREFIX="${XDG_DATA_HOME}/npm"    
-# [to-do] export NPM_CONFIG_PREFIX="${NODE_CURRENT}"
-# [to-do] npm config set prefix "D:\%USERNAME%\Apps\nodejs\vXX.XX.X"
-# [to-do] npm config set cache "%XDG_CACHE_HOME%\npm"
 
 #-------------------------------------------------------------------------------------------
-# Função para limpar PATH do Node.js anterior
+# HELPER: Resolve qual versão está ativa via junction "current"
 #-------------------------------------------------------------------------------------------
-_clean_node_path() {
-    # Remove todas as entradas relacionadas ao Node.js do PATH
-    PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$NODE_HOME" | tr '\n' ':')
-
-    # Remove ':' duplos e o último ':'
-    PATH=$(echo "$PATH" | sed 's/::/:/g' | sed 's/:$//')
-    export PATH
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Função para detectar se symlinks reais funcionam no Windows
-#-------------------------------------------------------------------------------------------
-_test_node_symlinks_support() {
-    local test_dir=$(mktemp -d)
-    local test_source="$test_dir/source"
-    local test_link="$test_dir/link"
-
-    mkdir -p "$test_source"
-    echo "test" > "$test_source/test.txt"
-
-    # Tentar criar symlink
-    if ln -sf "$test_source" "$test_link" 2>/dev/null; then
-        # Verificar se é symlink real (não cópia)
-        if [ -L "$test_link" ]; then
-            rm -rf "$test_dir"
-            return 0  # Symlinks reais funcionam
-        fi
-    fi
-
-    rm -rf "$test_dir"
-    return 1  # Symlinks não funcionam (só cópias)
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Função para obter a versão atualmente ativa
-#-------------------------------------------------------------------------------------------
-_get_current_node_version() {
-    local current_version=""
-
-    # Verificar se existe versão padrão definida
-    if [ -f "$NODE_HOME/.default_version" ]; then
-        current_version=$(cat "$NODE_HOME/.default_version")
-    fi
-
-    # Verificar se o diretório current existe e se corresponde à versão padrão
-    if [ -d "$NODE_CURRENT" ] && [ -n "$current_version" ]; then
-        local node_dir="$NODE_HOME/$current_version"
-        if [ -L "$NODE_CURRENT" ]; then
-            # É um symlink - verificar destino
-            if [ "$(readlink "$NODE_CURRENT")" = "$node_dir" ]; then
-                echo "$current_version" # Retorno de função, não visual
-            fi
-        elif [ -d "$node_dir" ]; then
-            # É uma cópia - assumir que corresponde à versão padrão
-            echo "$current_version" # Retorno de função, não visual
-        fi
-    fi
-}
-
-#-------------------------------------------------------------------------------------------
-# Função interna para listar versões instaladas com indicadores
-#-------------------------------------------------------------------------------------------
-_list_node_versions() {
-    local show_header="${1:-true}"
-
-    if [ "$show_header" = "true" ]; then
-        displayAction "Versoes disponiveis:"
-    fi
-
-    if [ ! -d "$NODE_HOME" ]; then
-        displayWarning "Aviso" "Nenhuma versão encontrada em $NODE_HOME"
-        return 1
-    fi
-
-    local current_version=$(_get_current_node_version)
-    local has_versions="false"
-
-    # Listar diretórios que começam com "node-" e destacar a versão ativa
-    while read -r version; do
-        has_versions="true"
-        if [ "$current_version" = "$version" ]; then
-            displayInfo "Versão" "$version (* Ativa)"
-        else
-            displayInfo "Versão" "$version"
-        fi
-    done < <(ls -1 "$NODE_HOME" | grep "^node-" | tr -d '/')
-
-    # Verificar se encontrou alguma versão
-    if [ "$has_versions" = "false" ]; then
-        displayWarning "Aviso" "Nenhuma versão encontrada em $NODE_HOME"
-    fi
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Função para carregar versão padrão salva
-#-------------------------------------------------------------------------------------------
-_load_default_node() {
-    if [ -f "$NODE_HOME/.default_version" ]; then
-        local default_version=$(cat "$NODE_HOME/.default_version")
-        local node_dir="${NODE_HOME}/${default_version}"
-
-        if [ -d "$node_dir" ]; then
-            # Verificar se a versão atual já é a mesma da versão padrão
-            local current_is_correct=false
-
-            if [ -e "$NODE_CURRENT" ]; then
-                if [ -L "$NODE_CURRENT" ]; then
-                    # É um symlink - verificar se aponta para o diretório correto
-                    if [ "$(readlink "$NODE_CURRENT")" = "$node_dir" ]; then
-                        current_is_correct=true
-                    fi
-                elif [ -d "$NODE_CURRENT" ]; then
-                    # É um diretório copiado - verificar se contém a versão correta
-                    local current_node_version=$("$NODE_CURRENT/node" --version 2>/dev/null)
-                    local expected_node_version=$("$node_dir/node" --version 2>/dev/null)
-                    if [ "$current_node_version" = "$expected_node_version" ]; then
-                        current_is_correct=true
-                    fi
-                fi
-            fi
-
-            # Se a versão atual não é a correta, fazer a troca
-            if [ "$current_is_correct" = "false" ]; then
-                # Limpar PATH anterior do Node.js
-                _clean_node_path
-
-                # Remover diretório/link atual
-                if [ -e "$NODE_CURRENT" ]; then
-                    rm -rf "$NODE_CURRENT"
-                fi
-
-                # Criar link/cópia para versão padrão
-                if _test_node_symlinks_support && ln -sf "$node_dir" "$NODE_CURRENT" 2>/dev/null; then
-                    # Symlink funcionou
-                    export PATH="$NODE_CURRENT:$PATH"
-                else
-                    # Fallback: cópia
-                    cp -r "$node_dir" "$NODE_CURRENT"
-                    export PATH="$NODE_CURRENT:$PATH"
-                fi
-            else
-                # Versão já está correta, apenas garantir que está no PATH
-                if [[ ":$PATH:" != *":$NODE_CURRENT:"* ]]; then
-                    export PATH="$NODE_CURRENT:$PATH"
-                fi
-            fi
-        fi
-    fi
-}
-
-#-------------------------------------------------------------------------------------------
-# Função para mostrar informações do Node.js
-#-------------------------------------------------------------------------------------------
-node-info() {
-    displayAction "Informações do Node.js"
-    displayInfo "Versão do Node" "$(node --version 2>/dev/null || echo 'Não encontrado')"
-    displayInfo "Versão do NPM" "$(npm --version 2>/dev/null || echo 'Não encontrado')"
-    displayInfo "Executável Node" "$(which node 2>/dev/null || echo 'Não encontrado')"
-    displayInfo "Executável NPM" "$(which npm 2>/dev/null || echo 'Não encontrado')"
-    displayInfo "Diretório atual" "$NODE_CURRENT"
-    displayInfo "Cache NPM" "$NPM_CONFIG_CACHE"
-    displayInfo "Pacotes globais" "$NPM_CONFIG_PREFIX"
-    displayInfo "Symlinks reais" "$(_test_node_symlinks_support && echo "Sim (Developer Mode)" || echo "Não (Usando cópia)")"
-
-    # Mostrar versão padrão
-    if [ -f "$NODE_HOME/.default_version" ]; then
-        displayInfo "Versão padrão" "$(cat "$NODE_HOME/.default_version")"
+_node_current_version() {
+    # No Git Bash, junctions criadas com mklink /J aparecem como symlinks para o readlink.
+    if [ -L "$NODE_CURRENT" ]; then
+        basename "$(readlink "$NODE_CURRENT")"   # retorna ex: "v22.14.0"
+    elif [ -d "$NODE_CURRENT" ]; then
+        # Junction criada externamente: pergunta ao próprio executável
+        node --version 2>/dev/null || echo ""
     else
-        displayInfo "Versão padrão" "Nenhuma definida"
+        echo ""
+    fi
+}
+
+
+#-------------------------------------------------------------------------------------------
+# HELPER: Cria ou recria a junction $NODE_CURRENT → $node_dir via cmd.exe
+# Equivalente nvm: nvm alias default <versão>
+#
+# Usa arquivo .bat temporário para evitar problemas de quoting com caminhos com espaços.
+# A saída do cmd.exe é convertida de CP850 → UTF-8 para evitar caracteres quebrados.
+#-------------------------------------------------------------------------------------------
+_node_set_junction() {
+    local node_dir="$1"
+    local output exit_code
+
+    # Converter caminhos para formato Windows (necessário para mklink /J)
+    local win_current win_target
+    win_current=$(path2win "$NODE_CURRENT")
+    win_target=$(path2win "$NODE_HOME/$node_dir")
+
+    # Remover junction existente.
+    # rmdir /S /Q remove a junction sem apagar o conteúdo do diretório-alvo.
+    if [ -e "$NODE_CURRENT" ] || [ -L "$NODE_CURRENT" ]; then
+        displayScript "Removendo junction anterior"
+        cmd.exe //c "rmdir //S //Q \"$win_target\""
+        echo ""
     fi
 
+    # Criar nova junction passando os caminhos via variáveis de ambiente,
+    # evitando qualquer problema de quoting entre o Git Bash e o cmd.exe.
+    displayScript "Criando junction"
+    output=$(cmd //c "mklink /J \"$win_current\" \"$win_target\"" 2>&1)
+    exit_code=$?
     echo ""
-    displayAction "Versões Instaladas"
-    _list_node_versions false
-}
 
-#-------------------------------------------------------------------------------------------
-# Função para exibir qual versão do Node.js está ativa
-#-------------------------------------------------------------------------------------------
-node-current() {
-    if command -v node >/dev/null 2>&1; then
-        displayAction "Node.js Ativo"
-        displayInfo "Versão ativa" "$(node --version)"
-        displayInfo "Executável" "$(which node)"
-        if [ -f "$NODE_HOME/.default_version" ]; then
-            displayInfo "Versão padrão" "$(cat "$NODE_HOME/.default_version")"
-        else
-            displayInfo "Versão padrão" "Nenhuma versão padrão definida"
-        fi
+    if [ $exit_code -eq 0 ]; then
+        displaySuccess "Junction" "$output"
+        return 0
     else
-        displayFailure "Erro" "Node.js não está disponível no PATH"
-        displayInfo "Dica" "Para ativar, execute o comando:"
-        displayScript "node-use <versao>"
-        echo ""
-        _list_node_versions true
-    fi
-}
-
-#-------------------------------------------------------------------------------------------
-# Função para alternar entre versões do Node.js (salva automaticamente como padrão)
-#-------------------------------------------------------------------------------------------
-node-use() {
-    if [ -z "$1" ]; then
-        echo ""
-        displayAction "Informar a versão"
-        displayWarning "Uso" "node-use <versao>"
-        echo ""
-        _list_node_versions true
-        return 1
-    fi
-
-    local version="$1"
-    local node_dir="${NODE_HOME}/${version}"
-
-    if [ ! -d "$node_dir" ]; then
-        displayFailure "Erro" "Node.js versão $version não encontrada"
-        displayInfo "Esperado" "$node_dir"
-        echo ""
-        _list_node_versions true
-        return 1
-    fi
-
-    displayAction "Alterando para Node.js versão $version..."
-
-    _clean_node_path
-
-    if [ -e "$NODE_CURRENT" ]; then
-        displayInfo "Ação" "Removendo versão anterior"
-        rm -rf "$NODE_CURRENT"
-    fi
-
-    if _test_node_symlinks_support && ln -sf "$node_dir" "$NODE_CURRENT" 2>/dev/null; then
-        displayInfo "Link" "Criado symlink para $node_dir"
-        method="symlink"
-    else
-        displayInfo "Ação" "Copiando arquivos (symlinks não suportados)..."
-        cp -r "$node_dir" "$NODE_CURRENT"
-        method="cópia"
-    fi
-
-    export PATH="$NODE_CURRENT:$PATH"
-
-    mkdir -p "$NODE_HOME"
-    echo "$version" > "$NODE_HOME/.default_version"
-
-    # Verificar se a mudança funcionou
-    local active_version=$(node --version 2>/dev/null)
-    local expected_version=$(grep -o 'v[0-9.]*' <<< "$version" || echo "desconhecida")
-
-    if [ "$active_version" = "$expected_version" ] || [[ "$active_version" == *"$(echo $version | grep -o '[0-9.]*')"* ]]; then
-        echo ""
-        displaySuccess "Concluído" "Node.js versão $version ativada (via $method)"
-        displayInfo "Status" "Versão $active_version definida como padrão."
-    else
-        echo ""
-        displayFailure "Erro" "A versão não foi ativada corretamente"
-        displayInfo "Esperado" "$expected_version"
-        displayInfo "Atual" "$active_version"
-        displayInfo "Executável" "$(which node)"
-        echo ""
-        displayAction "Depuração"
-        displayInfo "NODE_CURRENT" "$NODE_CURRENT"
-        displayInfo "PATH" "$PATH"
+        displayFailure "Erro" "mklink falhou: $output"
+        displayInfo   "Dica" "Verifique se o terminal tem acesso ao cmd.exe e se os caminhos existem"
         return 1
     fi
 }
 
+
 #-------------------------------------------------------------------------------------------
-# Função para exibir instruções para instalar uma nova versão do Node.js
+# Lista as versões instaladas em $NODE_HOME (diretórios com nome vX.Y.Z).
+# Equivalente a "nvm list".
 #-------------------------------------------------------------------------------------------
-node-download() {
-    if [ -z "$1" ]; then
-        echo "Uso: node-download <versao>"
-        echo "Exemplo: node-download 18.17.0"
-        echo ""
-        _list_node_versions true
+node-list() {
+    if [ ! -d "$NODE_HOME" ]; then
+        displayWarning "Aviso" "Diretório \$NODE_HOME não encontrado: $NODE_HOME"
         return 1
     fi
 
-    local version="$1"
-    local node_dir="${NODE_HOME}/node-v${version}-win-x64"
+    local current_version
+    current_version=$(_node_current_version)
 
-    if [ -d "$node_dir" ]; then
-        echo "Node.js versao $version ja esta instalada em:"
-        echo "  $node_dir"
-        echo "Para usar: node-use node-v${version}-win-x64"
-        echo ""
-        _list_node_versions true
+    local versions
+    versions=$(ls -1p "$NODE_HOME" | grep "^v[0-9].*/$" | tr -d '/' 2>/dev/null)
+
+    if [ -z "$versions" ]; then
+        displayWarning "Aviso" "Nenhuma versão instalada em $NODE_HOME"
         return 0
     fi
 
-    echo "Para instalar Node.js $version:"
-    local node_zip="https://nodejs.org/dist/v${version}/node-v${version}-win-x64.zip"
-    displayInfo "Baixar ZIP" "$node_zip"
-    displayInfo "Criar diretório" "mkdir -p $node_dir"
-    displayInfo "Extrair ZIP" "unzip -q $node_zip -d $node_dir"
-    displayInfo "Tornar corrente" "node-use node-v${version}-win-x64"
-    echo ""
-    echo "=== Versoes ja instaladas ==="
-    _list_node_versions false
+    displayAction "Versões do Node.js instaladas"
+    while IFS= read -r ver; do
+        if [ "$ver" = "$current_version" ]; then
+            displayInfo "$ver" "$NODE_HOME/$ver/  (*default)"
+        else
+            displayInfo "$ver" "$NODE_HOME/$ver/"
+        fi
+    done <<< "$versions"
 }
 
 
 #-------------------------------------------------------------------------------------------
-# Função para listar projetos Node.js
+# Baixa node-vxx.xx.x-win-x64.zip de nodejs.org, e cria pasta $NODE_HOME/v<versão>
+# Emula "nvm install <versão>"
 #-------------------------------------------------------------------------------------------
-node-projects() {
-    displayAction "Projetos Node.js no diretório atual"
-    local found_projects=false
-
-    find . -name "package.json" | head -10 | while read project; do
-        found_projects=true
-        displayInfo "Projeto" "$project"
-    done
-
-    if [ "$found_projects" = "false" ]; then
-        displayWarning "Atenção" "Nenhum projeto Node.js encontrado no diretório atual"
-    fi
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Função para criar projeto Node.js básico
-#-------------------------------------------------------------------------------------------
-node-new-project() {
-    local project_name="${1:-$(basename $PWD)}"
-
-    if [ -f package.json ]; then
-        displayWarning "Aviso" "O arquivo package.json já existe neste diretório."
+node-install() {
+    if [ -z "$1" ]; then
+        displayWarning "Uso"     "node-install <versão>"
+        displayInfo   "Exemplo" "node-install 22.14.0"
         return 1
     fi
 
-    displayAction "Criando projeto Node.js: $project_name"
+    local version="$1"
+    local pkg_name="node-v${version}-win-x64"
+    local node_dir="${NODE_HOME}/v${version}"           # destino final renomeado
+    local zip_url="https://nodejs.org/dist/v${version}/${pkg_name}.zip"
+    local zip_file="${NODE_HOME}/${pkg_name}.zip"
 
-    # Verificar se Node.js está disponível
-    if ! command -v node >/dev/null 2>&1; then
-        displayFailure "Erro" "Node.js não encontrado."
-        displayInfo "Dica" "Execute primeiro o comando:"
-        displayScript "node-use <versao>"
+    # Verificar se já está instalada
+    if [ -d "$node_dir" ]; then
+        displayWarning "Aviso" "Node.js v$version já instalado em $node_dir"
+        displayInfo   "Dica"  "Para definir como padrão: node-default $version"
+        return 0
+    fi
+
+    displayAction "Instalando Node.js v$version..."
+    displayInfo   "Origem"  "$zip_url"
+    displayInfo   "Destino" "$node_dir"
+    echo ""
+
+    # Download
+    displayScript "Baixando ${pkg_name}.zip"
+    if ! curl -L --progress-bar --fail -o "$zip_file" "$zip_url"; then
         echo ""
-        _list_node_versions true
+        displayFailure "Erro" "Falha no download. Verifique se a versão v$version existe em nodejs.org/dist"
+        rm -f "$zip_file"
+        return 1
+    fi
+    echo ""
+
+    # Extração: o ZIP contém internamente a pasta "node-v<versão>-win-x64"
+    displayScript "Extraindo ${pkg_name}.zip"
+    if ! unzip -q "$zip_file" -d "$NODE_HOME"; then
+        echo ""
+        displayFailure "Erro" "Falha na extração do ZIP"
+        rm -f "$zip_file"
         return 1
     fi
 
-    displayInfo "Status" "Versão do Node.js: $(node --version)"
+    # Renomear para o formato adotado: vX.Y.Z
+    displayScript "Renomeando para v${version}"
+    mv "${NODE_HOME}/${pkg_name}" "$node_dir"
 
-    # Redirecionado para manter o terminal mais limpo
-    npm init -y > /dev/null
+    # Limpeza do ZIP
+    rm -f "$zip_file"
 
     echo ""
-    displaySuccess "Sucesso" "Projeto '$project_name' criado!"
+    displaySuccess "Instalado"     "Node.js v$version disponível em $node_dir"
+    displayInfo   "Próximo passo" "node-default $version"
+}
+
+
+#-------------------------------------------------------------------------------------------
+# Recria a junction $NODE_HOME/current apontando para a versão escolhida.
+# Emula "nvm alias default <versão>"
+#
+# Aceita os seguintes formatos de <versão>:
+#   node-default 22.14.0   → usa exatamente v22.14.0
+#   node-default 22        → usa a v22.x.x mais recente instalada
+#   node-default 20.18     → usa a v20.18.x mais recente instalada
+#
+# Nota sobre junctions no Windows via Git Bash:
+#   O comando nativo é:  cmd /c mklink /J <link> <alvo>
+#   Usamos um .bat temporário para lidar corretamente com caminhos com espaços.
+#-------------------------------------------------------------------------------------------
+node-default() {
+    # Sem argumentos: exibir ajuda e versões disponíveis
+    if [ -z "$1" ]; then
+        displayAction "Definir qual será a versão default do Node.js"
+        displayInfo   "Sintaxe"  "node-default <versão>"
+        echo ""
+        displayInfo   "Exemplos" ""
+        displayInfo   "  node-default 22.14.0" "usa exatamente v22.14.0"
+        displayInfo   "  node-default 22"      "a v22.x.x mais recente instalada"
+        displayInfo   "  node-default 20.18"   "a v20.18.x mais recente instalada"
+        echo ""
+        node-list
+        return 0
+    fi
+
+    # Normalizar entrada: aceitar "22.14.0", "v22.14.0", "22", "20.18" etc.
+    local input="${1#v}"    # remove prefixo "v" se houver
+
+    # Resolver o diretório instalado que melhor corresponde ao prefixo informado
+    local matched_dir
+    matched_dir=$(ls -1 "$NODE_HOME" | grep "^v[0-9]" | grep "^v${input}" | sort -V | tail -1)
+
+    if [ -z "$matched_dir" ]; then
+        displayFailure "Erro" "Nenhuma versão instalada corresponde a: v${input}"
+        displayInfo   "Dica" "Use node-list para ver as versões disponíveis"
+        displayInfo   "Dica" "Use node-install <versão> para baixar uma nova versão"
+        return 1
+    fi
+
+    local node_dir="${NODE_HOME}/${matched_dir}"
+
+    displayAction "Definindo Node.js padrão: $matched_dir"
+    displayInfo   "Alvo" "$node_dir"
+    echo ""
+
+    _node_set_junction "$node_dir" || return 1
 
     echo ""
-    displayAction "Comandos úteis"
-    displayInfo "npm install <pacote>" "Instalar dependência"
-    displayInfo "npm install -D <pacote>" "Instalar dev dependency"
-    displayInfo "npm run <script>" "Executar script"
-    displayInfo "npm test" "Executar testes"
+    displayInfo "node" "$(node --version 2>/dev/null || echo 'reinicie o terminal para atualizar o PATH')"
+    displayInfo "npm"  "$(npm --version  2>/dev/null || echo 'reinicie o terminal para atualizar o PATH')"
+}
+
+
+#-------------------------------------------------------------------------------------------
+# Exibe informações gerais do ambiente Node.js
+#-------------------------------------------------------------------------------------------
+node-info() {
     echo ""
+    displayAction "Ambiente Node.js"
+    displayInfo "NODE_HOME"    "${NODE_HOME:-Não configurado}"
+    displayInfo "NODE_CURRENT" "${NODE_CURRENT:-Não configurado}"
+
+    local current_version
+    current_version=$(_node_current_version)
+    displayInfo "Versão ativa" "${current_version:-Nenhuma (junction inexistente ou inválida)}"
+
+    displayInfo "node"      "$(node --version 2>/dev/null || echo 'Não encontrado no PATH')"
+    displayInfo "npm"       "$(npm --version  2>/dev/null || echo 'Não encontrado no PATH')"
+    displayInfo "NPM cache" "${NPM_CONFIG_CACHE:-Não configurado}"
+
+    echo ""
+    node-list
 }
-
-
-#-------------------------------------------------------------------------------------------
-# Função para limpar cache do NPM
-#-------------------------------------------------------------------------------------------
-npm-clean() {
-    echo "Limpando cache do NPM..."
-    if command -v npm >/dev/null 2>&1; then
-        npm cache clean --force
-        echo "Cache limpo!"
-    else
-        echo "ERRO: NPM nao encontrado. Execute primeiro: node-use <versao>"
-        echo ""
-        _list_node_versions true
-    fi
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Função para verificar pacotes desatualizados
-#-------------------------------------------------------------------------------------------
-npm-outdated() {
-    echo "Verificando pacotes desatualizados..."
-    if command -v npm >/dev/null 2>&1; then
-        npm outdated
-    else
-        echo "ERRO: NPM nao encontrado. Execute primeiro: node-use <versao>"
-        echo ""
-        _list_node_versions true
-    fi
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Função para audit de segurança
-#-------------------------------------------------------------------------------------------
-npm-audit() {
-    echo "Executando audit de seguranca..."
-    if command -v npm >/dev/null 2>&1; then
-        npm audit
-        echo ""
-        echo "Para corrigir vulnerabilidades automaticamente:"
-        echo "  npm audit fix"
-    else
-        echo "ERRO: NPM nao encontrado. Execute primeiro: node-use <versao>"
-        echo ""
-        _list_node_versions true
-    fi
-}
-
-
-#-------------------------------------------------------------------------------------------
-# Carregar versão padrão automaticamente quando o script é inicializado
-#-------------------------------------------------------------------------------------------
-_load_default_node 2>/dev/null
 
 
 #-------------------------------------------------------------------------------------------
