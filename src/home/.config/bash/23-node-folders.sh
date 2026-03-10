@@ -6,6 +6,8 @@
 # Cria os diretórios para evitar erros de permissão ou inexistência
 mkdir -p "$NODE_HOME" \
          "$NPM_CONFIG_CACHE" \
+         "$NPM_CONFIG_TMP" \
+         "$NPM_CONFIG_LOGS_DIR" \
          "$(dirname "$NODE_REPL_HISTORY")" \
          "$(dirname "$NPM_CONFIG_USERCONFIG")"
 

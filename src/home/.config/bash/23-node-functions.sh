@@ -258,9 +258,16 @@ node-default() {
 node-info() {
     echo ""
     displayAction "Variáveis de ambiente para Node.js"
-    displayInfo "NODE_HOME"        "${NODE_HOME:-Não configurado}"
-    displayInfo "NODE_CURRENT"     "${NODE_CURRENT:-Não configurado}"
-    displayInfo "NPM_CONFIG_CACHE" "${NPM_CONFIG_CACHE:-Não configurado}"
+    displayInfo "NODE_HOME"               "${NODE_HOME:-Não configurado}"
+    displayInfo "NODE_CURRENT"            "${NODE_CURRENT:-Não configurado}"
+
+    echo ""
+    displayAction "Variáveis de ambiente para NPM"
+    displayInfo "NPM_CONFIG_CACHE"        "${NPM_CONFIG_CACHE:-Não configurado}"
+    displayInfo "NPM_CONFIG_TMP"          "${NPM_CONFIG_TMP:-Não configurado}"
+    displayInfo "NPM_CONFIG_LOGS_DIR"     "${NPM_CONFIG_LOGS_DIR:-Não configurado}"
+    displayInfo "NPM_CONFIG_PREFIX"       "${NPM_CONFIG_PREFIX:-Não configurado} (isolado por versão)"
+    displayInfo "NPM_CONFIG_USERCONFIG"   "${NPM_CONFIG_USERCONFIG:-Não configurado}"
 
     echo ""
     _node_current_version
