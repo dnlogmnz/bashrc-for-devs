@@ -32,7 +32,7 @@ _utils_validate_args() {
 
 # Helper para criar o .env padrão
 _gen_dot_env() {
-    displayInfo "Arquivo .env:" "Template de variáveis de ambiente"
+    displayAction "Criando arquivo .env com template de variáveis de ambiente"
     [ -r .env ] || cat > .env << EOF
 # Este arquivo possui secrets, manter sempre no .gitignore para que não seja enviado ao repositório
 
@@ -57,7 +57,10 @@ _gen_pyproject_toml() {
     local author_name=$(_utils_get_git_user "name")
     local author_email=$(_utils_get_git_user "email")
 
-    displayInfo "Arquivo pyproject.toml" "Modo '$build_mode'"
+    displayAction "Criando arquivo pyproject.toml (modo $build_mode)"
+    displayInfo "Projeto" "$project_name"
+    displayInfo "Python" ">=$python_version"
+    displayInfo "Autor" "$author_name <$author_email>"
 
     # Cabeçalho comum
     cat > pyproject.toml << EOF
@@ -89,7 +92,9 @@ _gen_ruff_toml() {
     local python_version="$1"
     local line_length="120"
 
-    displayInfo "Arquivo ruff.toml" "Linter & Formatter"
+    displayAction "Criando arquivo ruff.toml com configurações de Linter & Formatter"
+    displayInfo "Target Python" "${python_version}"
+    displayInfo "Line Length" "$line_length"
 
     cat > ruff.toml << EOF
 # Configurações globais
@@ -171,8 +176,8 @@ EOF
 
 # Helper específico para criar a estrutura de pastas da PoC
 _gen_poc_envs_folder() {
-    # Usando displayInfo para manter o alinhamento com a geração de outros arquivos/pastas
-    displayInfo "Diretório" "./envs/ (Estrutura de ambientes)"
+    displayAction "Criando estrutura de ambientes em ./envs/"
+    displayInfo "Ambientes" "prod-a, prod-b, prod-c"
 
     mkdir -p envs
     for product in prod-a prod-b prod-c; do
@@ -235,10 +240,10 @@ uv-new-poc() {
     _utils_validate_args "$@" || return 1
     local project_name="$1"
     local python_version="${2:-$UV_PYTHON_MIN_VER}"
-    displayTitle "python version" "$python_version"
-    displayTitle "python min version" "$UV_PYTHON_MIN_VER"
 
-    displayAction "Iniciando PoC: $project_name (Python $python_version)"
+    echo ""
+    displayAction "Criando Proof of Concept: $project_name"
+    displayInfo "Versão Python" "$python_version (mínima configurada: $UV_PYTHON_MIN_VER)"
 
     # Inicializa estrutura plana
     uv init --app --python "$python_version" "$project_name"

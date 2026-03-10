@@ -11,9 +11,24 @@ git-info() {
   displayAction "Configurações do Git"
   displayInfo "Versão" "$(git --version 2>/dev/null || echo 'Git não encontrado')"
   displayInfo "Executável" "$(which git 2>/dev/null || echo 'Não encontrado')"
-  displayInfo "Global Config Name" "$(git config --global user.name 2>/dev/null || echo 'Não configurado')"
-  displayInfo "Global Config Email" "$(git config --global user.email 2>/dev/null || echo 'Não configurado')"
-  displayInfo "Global Config Editor" "$(git config --global core.editor 2>/dev/null || echo 'Não configurado')"
+
+  echo ""
+  displayAction "Configurações Globais do User"
+  displayInfo "user.name" "$(git config --global user.name 2>/dev/null || echo 'Não configurado')"
+  displayInfo "user.email" "$(git config --global user.email 2>/dev/null || echo 'Não configurado')"
+
+  echo ""
+  displayAction "Configurações Globais de Comportamento"
+  displayInfo "core.autocrlf" "$(git config --global core.autocrlf 2>/dev/null || echo 'Não configurado')"
+  displayInfo "core.eol" "$(git config --global core.eol 2>/dev/null || echo 'Não configurado')"
+  displayInfo "core.editor" "$(git config --global core.editor 2>/dev/null || echo 'Não configurado')"
+
+  echo ""
+  displayAction "Configurações Globais de Encoding & Plataforma"
+  displayInfo "gui.encoding" "$(git config --global gui.encoding 2>/dev/null || echo 'Não configurado')"
+  displayInfo "http.sslbackend" "$(git config --global http.sslbackend 2>/dev/null || echo 'Não configurado')"
+  displayInfo "i18n.commitencoding" "$(git config --global i18n.commitencoding 2>/dev/null || echo 'Não configurado')"
+  displayInfo "i18n.logoutputencoding" "$(git config --global i18n.logoutputencoding 2>/dev/null || echo 'Não configurado')"
 
   if git rev-parse --git-dir &>/dev/null; then
     echo ""
