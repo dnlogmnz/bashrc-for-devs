@@ -5,8 +5,8 @@
 # ==========================================================================================
 
 # Source das funções de display (se disponível)
-if [ -f "${HOME}/.config/bash/00-display-functions.sh" ]; then
-    source "${HOME}/.config/bash/00-display-functions.sh"
+if [ -f "${HOME}/.config/bash/00-bash-functions.sh" ]; then
+    source "${HOME}/.config/bash/00-bash-functions.sh"
 fi
 
 #-------------------------------------------------------------------------------------------

@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Comando: claude-info
+# Descrição: Exibe informações gerais do ambiente Claude Code e da configuração
+# Uso: claude-info
+# ==========================================================================================
+
+# Source das funções de display
+if [ -f "${HOME}/.config/bash/00-bash-functions.sh" ]; then
+    source "${HOME}/.config/bash/00-bash-functions.sh"
+else
+    displayAction()  { echo ">>> $*"; }
+    displayInfo()    { echo "  - $1: ${2:+$2}"; }
+    displayWarning() { echo "[WARNING] $*"; }
+fi
+
+echo ""
+displayAction "Informações do Claude Code"
+displayInfo "Versão" "$(claude --version 2>/dev/null || echo 'Não encontrado ou não instalado')"
+
+echo ""
+displayAction "Variáveis de ambiente para Claude Code"
+if [ -n "${ANTHROPIC_API_KEY}" ]; then
+    displayInfo "ANTHROPIC_API_KEY" "Definida"
+else
+    displayInfo "ANTHROPIC_API_KEY" "Não definida"
+fi
+displayInfo "CLAUDE_CODE_GIT_BASH_PATH" "${CLAUDE_CODE_GIT_BASH_PATH:-Não definida}"
+displayInfo "CLAUDE_CONFIG_DIR"         "${CLAUDE_CONFIG_DIR:-Não definida}"
+displayInfo "NODE_EXTRA_CA_CERTS"       "${NODE_EXTRA_CA_CERTS:-Não definida}"
+
+echo ""
+displayAction "Configuração do Projeto para Claude Code"
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    local project_root=$(git rev-parse --show-toplevel)
+    local project_settings="$project_root/.claude/settings.json"
+    
+    if [[ -f "$project_settings" ]]; then
+        displayInfo "Configuração" "Encontrada em $project_root/.claude/settings.json"
+    else
+        displayInfo "Configuração" "Não encontrada (opcional)"
+    fi
+else
+    displayInfo "Configuração" "Esta não é uma pasta de projeto Git"
+fi
+
+#-------------------------------------------------------------------------------------------
+#--- Final do script claude-info
+#-------------------------------------------------------------------------------------------

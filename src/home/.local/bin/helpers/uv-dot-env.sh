@@ -7,8 +7,8 @@
 # ==========================================================================================
 
 # Source das funções de display
-if [ -f "${HOME}/.config/bash/00-display-functions.sh" ]; then
-    source "${HOME}/.config/bash/00-display-functions.sh"
+if [ -f "${HOME}/.config/bash/00-bash-functions.sh" ]; then
+    source "${HOME}/.config/bash/00-bash-functions.sh"
 else
     # Fallback simples se funções de display não estiverem disponíveis
     displayAction() { echo ">>> $*"; }
