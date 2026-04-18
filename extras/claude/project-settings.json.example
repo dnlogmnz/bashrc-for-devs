@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(npm test)",
+      "Bash(bash src/**)",
+      "Read(./src/**)",
+      "Read(./docs/**)",
+      "Read(./*.md)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)"
+    ]
+  },
+  "instructions": {
+    "projectDescription": "Bash RC for Devs: Shell configuration with Claude Code integration",
+    "codeStyle": "Use bash best practices, comment in Portuguese",
+    "preferredLanguages": ["bash", "json", "markdown"]
+  }
+}

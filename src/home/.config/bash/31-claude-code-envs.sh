@@ -1,26 +1,52 @@
+#
+# Script: ~/.config/bash/node-folders.sh
+# Valida variáveis de ambiente para uso do Claude Code.
+# A gestão do certificado raiz é feita em um script separado: claude-code-cert.sh.
+# ==========================================================================================
 
-# Este script exporta variáveis de ambiente do Claude Code no Git Bash.
-# A gestão do certificado raiz é feita em um script separado: 31-claude-code-cert.sh.
+#-------------------------------------------------------------------------------------------
+#--- VALIDAÇÃO DE CONFIGURAÇÃO
+#-------------------------------------------------------------------------------------------
 
-# Configuração da localização do Git Bash - requisito do terminal integrado do Claude Code no Windows
-_GIT_BASH_EXE="echo $(/bin/df / | grep ' /$' | awk '{print $1}')${BASH}.exe | tr '/' '\\\'"
-export CLAUDE_CODE_GIT_BASH_PATH="${CLAUDE_CODE_GIT_BASH_PATH:-$_GIT_BASH_EXE}"
-unset _GIT_BASH_EXE
+# Valida variáveis de ambiente e arquivo de configuração global
+_claude_validate_required_config() {
+  local required_vars=("ANTHROPIC_API_KEY" "CLAUDE_CODE_GIT_BASH_PATH" "CLAUDE_CONFIG_DIR" "NODE_EXTRA_CA_CERTS")
+  
+  # Verificar variáveis obrigatórias
+  for var_name in "${required_vars[@]}"; do
+    if [[ -z "${!var_name}" ]]; then
+      displayFailure "Windows" "Variáveis de ambiente para sua conta: definir a variável $var_name"
+    fi
+  done
+  
+  # Verificar arquivo de configuração global
+  local config_dir
+  if [[ -n "$CLAUDE_CONFIG_DIR" ]]; then
+    config_dir="$CLAUDE_CONFIG_DIR"
+  elif [[ -n "$HOME" ]]; then
+    config_dir="$HOME/.config/claude"
+  else
+    config_dir="$USERPROFILE/.claude"
+  fi
+  
+  # Se o diretório não existir, tentar USERPROFILE
+  if [[ ! -d "$config_dir" ]]; then
+    displayWarning "Claude Config" "Diretório de configuração não encontrado em $config_dir"
+  fi
+  
+  local global_settings="$config_dir/settings.json"
+  
+  if [[ ! -f "$global_settings" ]]; then
+    displayFailure "Claude Config" "Arquivo settings.json não encontrado em $global_settings"
+  fi
+}
 
-# Configuração de Diretório XDG para o Claude Code
-export CLAUDE_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/claude}"
-mkdir -p "$CLAUDE_CONFIG_DIR"
+#-------------------------------------------------------------------------------------------
+#--- EXECUTAR VALIDAÇÃO
+#-------------------------------------------------------------------------------------------
 
-# Alternativa ao uso de LLM's na Anthropic: configurar um AI Gateway (p.ex: LiteLLM)
-# export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-https://your-lite-llm-gateway.com}"
-# export ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-sonnet-4-6}"
-# export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-seu-token-sk-litellm}"
-
-# Desativa tráfego não essencial para a Anthropic (verificação de atualizações, análises, etc)
-export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-
-# Desativa coleta e envio de dados de telemetria para a Anthropic
-export CLAUDE_CODE_DISABLE_TELEMETRY=1
+# Executa validação de configuração obrigatória
+_claude_validate_required_config
 
 #-------------------------------------------------------------------------------------------
 #--- Final do script claude-code-envs.sh

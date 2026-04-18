@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ANTHROPIC_MODEL": "claude-sonnet-4-6",
+    "CLAUDE_CODE_DISABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "codeExecution": {
+    "timeout": 30000,
+    "maxOutputSize": 1000000
+  }
+}

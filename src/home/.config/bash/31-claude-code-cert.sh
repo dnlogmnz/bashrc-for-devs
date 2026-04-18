@@ -1,5 +1,7 @@
+#
+# Script: ~/.config/bash/claude-code-cert.sh
 # Gerencia o certificado raiz usado pelo Claude Code no Git Bash.
-# O arquivo armazenado é $XDG_CONFIG_HOME/certs/ca_root.pem.
+# ==========================================================================================
 
 cert_dir="$XDG_CONFIG_HOME/certs"
 cert_file="$cert_dir/ca_root.pem"
@@ -37,3 +39,7 @@ fi
 
 export SSL_CERT_FILE="$cert_file"
 export NODE_EXTRA_CA_CERTS="$cert_file"
+
+#-------------------------------------------------------------------------------------------
+#--- Final do script claude-code-cert.sh
+#-------------------------------------------------------------------------------------------
