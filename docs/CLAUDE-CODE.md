@@ -1,293 +1,180 @@
-# Claude Code no Windows 11 — Configuração e Instalação
+# ![Claude Code](./claude-code.ico) **Claude Code** no Bash RC for Devs
+## Configuração, Instalação e Referência de Variáveis de Ambiente
 
-Este documento consolida em um único guia toda a informação necessária para configurar, instalar e usar o **Claude Code** no Windows 11 com Git Bash, cobrindo os seguintes casos de uso:
-
-| Caso de uso | Quem usa |
-| --- | --- |
-| **Assinatura Anthropic** (Pro, Max, Team, Enterprise) | Usuários com plano claude.ai |
-| **API direta Anthropic** (Console) | Desenvolvedores com chave `sk-ant-` |
-| **GCP Vertex AI** | Equipes com infraestrutura GCP |
-| **AWS Bedrock** | Equipes com infraestrutura AWS |
-| **AI Gateway / LLM Proxy** (ex.: LiteLLM, Genial) | Ambientes corporativos com gateway centralizado |
+> **Última atualização:** abril/2026  
+> **Público:** Desenvolvedores Windows 11 com Git Bash configurado no padrão XDG
 
 ---
 
-## 1. Conceitos Essenciais Antes de Começar
+## Introdução
 
-### 1.1. O que é o Claude Code
+O **Claude Code** é uma ferramenta de linha de comando (CLI) da Anthropic que age como agente autônomo diretamente no seu projeto: lê a estrutura de diretórios, analisa arquivos de código, cria e edita código, executa comandos de shell, realiza testes e gerencia fluxos de git. A extensão para VS Code é uma interface gráfica que invoca internamente o mesmo binário CLI — não o substitui.
 
-O **Claude Code** é uma ferramenta de interface de linha de comando (CLI) baseada em agentes autônomos de IA generativa. Diferente de assistentes de chat comuns, ele tem capacidade agêntica: pode ler a estrutura de diretórios, analisar arquivos de código, executar comandos no shell, e realizar edições complexas em múltiplos arquivos de forma autônoma.
+O **Claude Code** pode ser usado com diferentes provedores de LLM:
 
-O **Claude Code** também pode ser instalado como extensão no **VS Code** e como plugin nos produtos da JetBrains. Nesses casos, abre uma janela de chat integrada à IDE — mas as funcionalidades de automação via linha de comando ficam disponíveis apenas no CLI.
+- **Anthropic (direta):** requer assinatura de um plano pago (Pro, Max, Team ou Enterprise) ou uma API Key do Console da Anthropic.
+- **Amazon Bedrock:** autenticação via credenciais AWS (não usa `ANTHROPIC_API_KEY`).
+- **Google Cloud Vertex AI:** autenticação via credenciais GCP (não usa `ANTHROPIC_API_KEY`).
+- **AI Gateway (ex.: LiteLLM):** autenticação via token do Gateway (variável `ANTHROPIC_AUTH_TOKEN`).
 
-**Arquivos e diretórios no Windows (instalação padrão):**
+> **Sobre modelos de outros provedores:** O **Claude Code** foi projetado especificamente para trabalhar com modelos Claude. Embora tecnicamente seja possível apontar um gateway (como LiteLLM) para modelos de outros fabricantes (ex.: `gemini-2.5-pro`), isso **não é suportado oficialmente** pela Anthropic. Funcionalidades como ferramentas agênticas, prompt caching e alguns comandos internos dependem de comportamentos específicos dos modelos Claude e podem apresentar erros imprevisíveis com outros modelos. Recomenda-se fortemente usar apenas modelos Claude.
 
-| Caminho | O que é |
-| --- | --- |
-| `%USERPROFILE%\.local\bin\claude.exe` | Binário executável do CLI |
-| `%USERPROFILE%\.claude\` | Diretório de configuração |
-| `%USERPROFILE%\.claude\settings.json` | Configuração global do agente |
-| `%USERPROFILE%\.claude\.credentials.json` | Credenciais de autenticação |
-| `%USERPROFILE%\.claude.json` | Preferências (tema, histórico de dicas) |
-
-> **Atenção — padrão XDG:** O **Bash RC for Devs** adota o padrão XDG de diretórios. Portanto, o `settings.json` global do Claude Code ficará em `$HOME/.config/claude/settings.json` em vez do caminho padrão acima. Isso é controlado pela variável `CLAUDE_CONFIG_DIR`.
-
-### 1.2. Autenticação — Qual Variável Usar em Cada Caso
-
-Esta é a dúvida mais comum. O Claude Code suporta vários métodos de autenticação, escolhidos automaticamente na seguinte ordem de prioridade (do mais ao menos prioritário):
-
-| Prioridade | Variável / Método | Quando usar |
-| :---: | --- | --- |
-| **1** | `CLAUDE_CODE_USE_BEDROCK=1` + credenciais AWS | Acesso via AWS Bedrock |
-| **1** | `CLAUDE_CODE_USE_VERTEX=1` + credenciais GCP | Acesso via GCP Vertex AI |
-| **1** | `CLAUDE_CODE_USE_FOUNDRY=1` + credenciais Azure | Acesso via Microsoft Foundry |
-| **2** | `ANTHROPIC_AUTH_TOKEN` | AI Gateway / LLM Proxy (LiteLLM, Genial, etc.) |
-| **3** | `ANTHROPIC_API_KEY` | API direta da Anthropic Console (`sk-ant-…`) |
-| **4** | `apiKeyHelper` (script em `settings.json`) | Credenciais dinâmicas / rotativas (vault) |
-| **5** | OAuth via browser (padrão) | Assinatura Pro, Max, Team ou Enterprise |
-
-**Regra para assinantes Pro/Max:** **NÃO defina `ANTHROPIC_API_KEY` no ambiente.** Se ela estiver definida, o Claude Code a usa e cobra via API pay-as-you-go, ignorando sua assinatura. A autenticação correta é feita pelo browser na primeira execução de `claude`.
-
-**Diferença entre `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_API_KEY`:**
-
-- `ANTHROPIC_API_KEY`: chave de API nativa da Anthropic, obtida no [Console da Anthropic](https://platform.claude.com/settings/keys). Enviada como cabeçalho HTTP `X-Api-Key`. Uso exclusivo com a API direta da Anthropic.
-- `ANTHROPIC_AUTH_TOKEN`: token Bearer genérico. Enviado como cabeçalho HTTP `Authorization: Bearer <token>`. Usado quando você roteia as requisições por um **AI Gateway ou proxy LLM** (LiteLLM, Genial, etc.) que autentica com tokens Bearer em vez de chaves Anthropic. Sempre combinado com `ANTHROPIC_BASE_URL` apontando para o gateway.
-
-### 1.3. Uso de Modelos de Outros Provedores (não-Anthropic)
-
-O **Claude Code** foi desenvolvido para usar modelos Claude. Ele **não suporta nativamente** modelos de outros provedores como `gemini-2.5-pro` ou `gpt-4o`.
-
-Porém, há duas situações distintas a considerar:
-
-**a) GCP Vertex AI e AWS Bedrock** — Nesses casos, você ainda usa **modelos Claude** (Sonnet, Haiku, Opus), mas hospedados e cobrados pela infraestrutura do provedor de nuvem, não diretamente pela Anthropic. As variáveis de modelo continuam sendo IDs de modelos Claude, com formato específico do provedor:
-
-```bash
-# Vertex AI — formato: nome-do-modelo@versão
-ANTHROPIC_MODEL='claude-sonnet-4-6@20260514'
-ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
-
-# AWS Bedrock — formato: região.anthropic.nome-do-modelo-v1:0
-ANTHROPIC_MODEL='us.anthropic.claude-sonnet-4-6-v1:0'
-ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-v1:0'
-```
-
-**b) Modelos de terceiros via AI Gateway (LiteLLM, Bifrost, etc.)** — É possível usar modelos como Gemini ou GPT-4o com a interface do Claude Code **somente via um proxy que traduza o formato de API**. O LiteLLM faz essa tradução automaticamente. Porém, como o Claude Code foi otimizado para os recursos específicos dos modelos Claude (uso de ferramentas, raciocínio agêntico), a experiência com modelos de terceiros é inferior. Se precisar alternar entre múltiplos provedores, avalie ferramentas como Aider ou OpenCode.
+Este documento descreve em sequência todo o processo de configuração e instalação para o ambiente **Windows 11 com Git Bash**.
 
 ---
 
-## 2. Pré-requisitos de Instalação
+## Parte 1 — Entender antes de configurar
 
-Realize **todas** as configurações desta seção antes de instalar o Claude Code.
+### 1.1 Hierarquia de precedência das configurações
 
-### 2.1. Pressupostos deste documento
+O **Claude Code** busca configurações em camadas. Quando a mesma variável está definida em duas camadas, a de **menor número** (mais específica) vence:
 
-- O usuário do Windows não tem privilégios administrativos.
-- Preferência pelo uso do Git Bash em vez de PowerShell ou CMD para configurações.
-- O Git for Windows está instalado em `D:\%USERNAME%\Apps\Git` (não no caminho padrão).
-- O **Bash RC for Devs** com padrão XDG está configurado: `settings.json` global ficará em `$HOME/.config/claude/`.
+| Nível | Escopo | Onde fica |
+|:---:|---|---|
+| **1** | Linha de comando | `claude --model claude-sonnet-4-6` |
+| **2** | Shell (sessão) | `export` / `31-claude-code-envs.sh` |
+| **3** | Projeto — pessoal | `PROJETO/.claude/settings.local.json` |
+| **4** | Projeto — equipe | `PROJETO/.claude/settings.json` |
+| **5** | Usuário (global) | `$HOME/.config/claude/settings.json` *(padrão XDG)* |
+| **6** | Sistema (Windows) | "Editar variáveis de ambiente para sua conta" |
 
-### 2.2. Verificar se o Git Bash está acessível
+> **Nota XDG:** O **Bash RC for Devs** adota o padrão XDG, portanto o diretório global do Claude Code é `$HOME/.config/claude` (em vez do padrão `%USERPROFILE%\.claude` usado pela maioria das instalações sem XDG). Para isso, a variável `CLAUDE_CODE_DIR` **deve** ser definida apontando para esse diretório, conforme explicado na seção 2.1.
 
-O Claude Code requer o Git Bash para executar comandos no Windows. Abra um Git Bash e confirme:
+### 1.2 Autenticação: `ANTHROPIC_API_KEY` vs. `ANTHROPIC_AUTH_TOKEN`
 
-```bash
-which bash   # deve retornar o caminho do bash.exe
-git --version
-```
+Estas duas variáveis têm comportamentos **diferentes** e são mutuamente exclusivas na prática:
 
-### 2.3. Definir `CLAUDE_CODE_GIT_BASH_PATH` nas variáveis de ambiente do Windows
+| Variável | Quando usar | Como é enviada |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Acesso direto à API da Anthropic (Console) | Header `X-Api-Key` |
+| `ANTHROPIC_AUTH_TOKEN` | AI Gateway / LiteLLM (qualquer provedor não-Anthropic) | Header `Authorization: Bearer <valor>` |
 
-Como o Git for Windows está instalado em caminho não padrão (`D:\%USERNAME%\Apps\Git`), você **deve** definir esta variável para que o Claude Code encontre o bash:
+**Regra importante:** Quando `ANTHROPIC_API_KEY` está definida, o Claude Code **desabilita** o fluxo OAuth (login via browser com sua conta claude.ai). Se você assina o plano Pro/Max e quer usar a sua assinatura (sem API Key separada), **não defina** `ANTHROPIC_API_KEY` — deixe o Claude Code fazer o login OAuth normalmente.
 
-1. Abra o Git Bash e execute:
-   ```bash
-   where bash
-   # Exemplo de resultado: D:\%USERNAME%\Apps\Git\bin\bash.exe
-   ```
+| Provedor | Variável de autenticação recomendada |
+|---|---|
+| **Anthropic (assinatura Pro/Max/Team)** | Nenhuma — use o login OAuth (`claude` → browser) |
+| **Anthropic (API Key do Console)** | `ANTHROPIC_API_KEY` |
+| **AI Gateway / LiteLLM** | `ANTHROPIC_AUTH_TOKEN` |
+| **Amazon Bedrock** | Credenciais AWS (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, etc.) |
+| **Google Vertex AI** | Credenciais GCP (`GOOGLE_APPLICATION_CREDENTIALS`, etc.) |
 
-2. Abra **"Editar as variáveis de ambiente para sua conta"** no Windows 11.
+### 1.3 Sobre certificados SSL corporativos
 
-3. Na seção superior (**Variáveis de usuário para `%USERNAME%`**), clique em **Novo...**
+O binário nativo do **Claude Code** integra automaticamente a loja de certificados do sistema operacional. Na maioria dos ambientes corporativos com proxy SSL, isso é suficiente — **sem necessidade de configuração adicional**.
 
-4. Preencha:
-   | Campo | Valor |
-   | --- | --- |
-   | Nome da variável | `CLAUDE_CODE_GIT_BASH_PATH` |
-   | Valor da variável | `D:\SeuUsuario\Apps\Git\bin\bash.exe` |
+A variável `NODE_EXTRA_CA_CERTS` é necessária apenas quando o Claude Code foi instalado via `npm` (método legado) **ou** quando o proxy corporativo usa uma CA raiz não presente na loja do Windows. O script `31-claude-code-cert.sh` do **Bash RC for Devs** automatiza esse processo para quem precisar.
 
-> **Nota:** Substitua `SeuUsuario` pelo nome real da sua pasta de usuário. O script `31-claude-code-envs.sh` tenta auto-descobrir o bash, mas em caminhos não padrão a definição manual é obrigatória.
-
-### 2.4. Definir `CLAUDE_CONFIG_DIR` para o padrão XDG
-
-O **Bash RC for Devs** usa o padrão XDG. Para que o Claude Code respeite esse padrão, defina:
-
-1. No mesmo aplicativo **"Editar as variáveis de ambiente para sua conta"**, clique em **Novo...**
-
-2. Preencha:
-   | Campo | Valor |
-   | --- | --- |
-   | Nome da variável | `CLAUDE_CONFIG_DIR` |
-   | Valor da variável | `C:\Users\SeuUsuario\.config\claude` |
-
-   > **Atenção:** Use o caminho Windows com barras invertidas aqui (variável do sistema operacional). Dentro do Git Bash, esse caminho é acessível como `$HOME/.config/claude`.
-
-3. Abra um Git Bash e crie o diretório e o arquivo de configuração:
-   ```bash
-   mkdir -p $HOME/.config/claude
-   touch $HOME/.config/claude/settings.json
-   ```
-
-### 2.5. Verificar instalação do Node.js (apenas para instalação via npm — opcional)
-
-O **instalador nativo** do Claude Code (recomendado pela Anthropic desde outubro de 2025) **não requer Node.js**. Ele baixa e instala um binário autocontido.
-
-Se preferir instalar via `npm` (método legado), verifique:
-
-```bash
-node -v   # deve ser v18 ou superior
-```
-
-> **Dica:** Prefira o instalador nativo. Ele é mais simples, não tem dependências e atualiza automaticamente em segundo plano.
-
-### 2.6. Verificar acesso para download do instalador
-
-Em um navegador, acesse **`https://claude.ai/install.cmd`**:
-
-- Se abrir uma janela de download: seu usuário tem acesso. Cancele o download.
-- Se ocorrer timeout ou erro 403: provavelmente você está em ambiente corporativo com restrições de rede. Abra um chamado para o time de TI.
-
-### 2.7. Configurar certificado SSL (apenas para ambientes corporativos com proxy de inspeção SSL)
-
-> **Usuários domésticos com plano Pro/Max da Anthropic:** Não precisam desta etapa.
-
-Em ambientes corporativos com inspeção SSL (proxy MITM), o Claude Code pode recusar conexões com erro `Self-signed certificate` ou `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. Isso ocorre porque o runtime Node.js/Bun não usa a loja de certificados nativa do Windows.
-
-A solução é apontar `NODE_EXTRA_CA_CERTS` para um arquivo `.pem` com o certificado raiz corporativo.
-
-**Opção A — Deixar o Bash RC for Devs gerenciar automaticamente:**
-
-O script `31-claude-code-cert.sh` baixa o certificado raiz automaticamente ao abrir o Git Bash e exporta `NODE_EXTRA_CA_CERTS` para a sessão.
-
-Para validar que o arquivo foi gerado:
-```bash
-ls $HOME/.config/certs/ca_root.pem       # confirma existência
-openssl x509 -in $HOME/.config/certs/ca_root.pem -noout -subject  # exibe o subject do cert
-```
-
-**Opção B — Definir manualmente nas variáveis de ambiente do Windows:**
-
-1. Obtenha o arquivo `.pem` do certificado raiz corporativo com o time de TI.
-
-2. Salve em um caminho acessível, por exemplo: `D:\SeuUsuario\home\.certs\ca_root.pem`
-
-3. Em **"Editar as variáveis de ambiente para sua conta"**, adicione:
-   | Campo | Valor |
-   | --- | --- |
-   | Nome da variável | `NODE_EXTRA_CA_CERTS` |
-   | Valor da variável | `D:\SeuUsuario\home\.certs\ca_root.pem` |
-
-4. Confirme o conteúdo do arquivo:
-   ```bash
-   cat $HOME/.config/certs/ca_root.pem
-   ```
-   Resultado esperado:
-   ```
-   -----BEGIN CERTIFICATE-----
-   várias+linhas+com+o+mesmo+comprimento
-   e+a+última+linha+provavelmente+é+menor=
-   -----END CERTIFICATE-----
-   ```
-   O arquivo deve conter exatamente um certificado (um bloco `BEGIN`/`END`).
-
-### 2.8. Criar o arquivo `settings.json` global
-
-O `settings.json` global controla o comportamento do Claude Code para todos os projetos do usuário. Abaixo estão os templates para cada caso de uso.
-
-Abra o arquivo criado em `$HOME/.config/claude/settings.json` e cole o template do seu caso de uso:
+> **Para assinantes Claude Pro sem proxy corporativo:** você provavelmente não precisa configurar `NODE_EXTRA_CA_CERTS`.
 
 ---
 
-#### Template A — Assinatura Anthropic (Pro, Max, Team, Enterprise)
+## Parte 2 — Configurações antes da instalação
 
-**Não defina `ANTHROPIC_API_KEY`**. A autenticação é feita via OAuth (browser) na primeira execução.
+Execute os passos desta seção **na ordem indicada**, antes de instalar o Claude Code.
+
+### 2.1 Definir `CLAUDE_CODE_DIR` (obrigatório para padrão XDG)
+
+O **Bash RC for Devs** usa XDG, então o diretório de configuração global do Claude Code **não** é o padrão `%USERPROFILE%\.claude`. É necessário informar ao Claude Code onde procurar suas configurações.
+
+Abra **"Editar as variáveis de ambiente para sua conta"** e adicione:
+
+| Nome | Valor |
+|---|---|
+| `CLAUDE_CODE_DIR` | `C:\Users\%USERNAME%\.config\claude` |
+
+> **Por que variável de ambiente do Windows e não `settings.json`?** O Claude Code lê `CLAUDE_CODE_DIR` **antes** de abrir qualquer arquivo de configuração, então ela precisa estar disponível no nível do sistema operacional.
+
+### 2.2 Definir `CLAUDE_CODE_GIT_BASH_PATH` (obrigatório)
+
+O Claude Code usa `bash.exe` internamente para executar comandos. Você deve informar a localização exata.
+
+Abra um Git Bash e execute:
+```bash
+where bash
+```
+
+O resultado será o caminho do `bash.exe`. No seu caso (instalação em `D:\%USERNAME%\Apps\Git`):
+```
+D:\%USERNAME%\Apps\Git\bin\bash.exe
+```
+
+Abra **"Editar as variáveis de ambiente para sua conta"** e adicione:
+
+| Nome | Valor |
+|---|---|
+| `CLAUDE_CODE_GIT_BASH_PATH` | `D:\%USERNAME%\Apps\Git\bin\bash.exe` |
+
+> **Atenção:** use o caminho real retornado pelo `where bash`, que pode diferir dependendo de como o Git for Windows foi instalado.
+
+### 2.3 Criar o diretório e o `settings.json` global (Nível 5)
+
+Abra um Git Bash e execute:
+```bash
+mkdir -p "$HOME/.config/claude"
+touch "$HOME/.config/claude/settings.json"
+```
+
+Edite o arquivo `$HOME/.config/claude/settings.json` com o conteúdo adequado ao seu caso de uso. Veja os templates na seção 2.4.
+
+### 2.4 Templates do `settings.json` global por caso de uso
+
+#### Template A — Anthropic direto (assinatura Pro/Max)
+
+Para quem usa a **própria assinatura** do claude.ai. Sem API Key, sem token.
 
 ```json
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
+    "CLAUDE_CODE_DISABLE_TELEMETRY": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-  },
-  "permissions": {
-    "deny": [
-      "Read(./.env)",
-      "Read(./.git/**)",
-      "Read(**/node_modules/**)",
-      "Read(**/build/**)",
-      "Read(**/dist/**)",
-      "Read(**/*.pem)",
-      "Read(**/*.key)"
-    ]
   }
 }
 ```
 
----
+> Após instalar, execute `claude` e faça login via browser com sua conta claude.ai.
 
-#### Template B — API direta da Anthropic Console
+#### Template B — Anthropic via API Key (Console da Anthropic)
 
-Para quem acessa via chave de API (`sk-ant-…`) obtida em [platform.claude.com](https://platform.claude.com/settings/keys).
+Para quem tem uma API Key gerada em [platform.claude.com](https://platform.claude.com/settings/keys):
 
 ```json
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "ANTHROPIC_API_KEY": "sk-ant-SuaChaveAqui",
+    "ANTHROPIC_API_KEY": "sk-ant-xxxxxxxxxxxxxxxx",
+    "CLAUDE_CODE_DISABLE_TELEMETRY": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-  },
-  "permissions": {
-    "deny": [
-      "Read(./.env)",
-      "Read(./.git/**)",
-      "Read(**/node_modules/**)",
-      "Read(**/*.pem)",
-      "Read(**/*.key)"
-    ]
   }
 }
 ```
 
-> **Atenção:** Não coloque a chave em arquivos versionados no Git. Se trabalhar em equipe, defina `ANTHROPIC_API_KEY` nas variáveis de ambiente do Windows em vez de no `settings.json`.
+#### Template C — AI Gateway / LiteLLM
 
----
-
-#### Template C — GCP Vertex AI (modelos Claude hospedados no GCP)
-
-Autenticação via Google Application Default Credentials (ADC). Não é necessário `ANTHROPIC_API_KEY` nem `ANTHROPIC_AUTH_TOKEN`.
+Para quem acessa modelos Claude via um proxy como LiteLLM (ou qualquer gateway compatível com a API da Anthropic):
 
 ```json
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "CLAUDE_CODE_USE_VERTEX": "1",
-    "ANTHROPIC_VERTEX_PROJECT_ID": "seu-project-id-gcp",
-    "CLOUD_ML_REGION": "us-east5",
-    "ANTHROPIC_MODEL": "claude-sonnet-4-6@20260514",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5@20251001",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-4-6@20260514",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+    "ANTHROPIC_AUTH_TOKEN": "sk-litellm-xxxxxxxxxx",
+    "ANTHROPIC_BASE_URL": "https://seu-gateway.empresa.com",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-4-6",
+    "CLAUDE_CODE_DISABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"
   }
 }
 ```
 
-**Pré-requisito:** Execute `gcloud auth application-default login` no terminal antes de usar.
+> **Sobre `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`:** O Claude Code envia automaticamente headers `anthropic-beta` com funcionalidades experimentais. Gateways e provedores terceiros frequentemente rejeitam esses headers com erro `"Unexpected value(s) for the anthropic-beta header"`. Definir `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` resolve esse problema.
 
-> **Importante:** O Vertex AI suporta apenas **modelos Claude** (Sonnet, Haiku, Opus) no Claude Code. Para usar Gemini via Claude Code, é necessário um AI Gateway como o LiteLLM. Consulte a seção [1.3](#13-uso-de-modelos-de-outros-provedores-não-anthropic).
+#### Template D — Amazon Bedrock
 
----
-
-#### Template D — AWS Bedrock (modelos Claude hospedados na AWS)
-
-Autenticação via credenciais AWS padrão (perfil AWS, variáveis de ambiente, IAM role, etc.).
+Para quem acessa Claude via AWS Bedrock. A autenticação é feita via credenciais AWS padrão:
 
 ```json
 {
@@ -295,42 +182,158 @@ Autenticação via credenciais AWS padrão (perfil AWS, variáveis de ambiente, 
   "env": {
     "CLAUDE_CODE_USE_BEDROCK": "1",
     "AWS_REGION": "us-east-1",
-    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-6-v1:0",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "us.anthropic.claude-haiku-4-5-v1:0",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "us.anthropic.claude-sonnet-4-6-v1:0",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+    "AWS_PROFILE": "seu-perfil-aws",
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"
   }
 }
 ```
 
-**Pré-requisito:** Configure credenciais AWS (ex.: `aws configure` ou defina `AWS_PROFILE`).
+> **Nota:** O login interativo via `claude` também funciona — selecione "3rd-party platform" → "Amazon Bedrock" e o assistente de configuração guia o restante. Consulte [docs.claude.com/en/docs/claude-code/amazon-bedrock](https://code.claude.com/docs/en/amazon-bedrock) para configuração completa de IAM e modelos.
 
-> **Atenção:** Antes do primeiro uso, ative os modelos Claude no console AWS Bedrock em **Model access → Request access**.
+#### Template E — Google Cloud Vertex AI
 
----
-
-#### Template E — AI Gateway / LLM Proxy (LiteLLM, Genial, etc.)
-
-Use `ANTHROPIC_AUTH_TOKEN` (não `ANTHROPIC_API_KEY`) quando o gateway autentica com tokens Bearer. Combine sempre com `ANTHROPIC_BASE_URL`.
+Para quem acessa Claude via GCP Vertex AI:
 
 ```json
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "ANTHROPIC_AUTH_TOKEN": "sk-SeuTokenNoGateway",
-    "ANTHROPIC_BASE_URL": "https://seu-gateway.empresa.com",
-    "ANTHROPIC_MODEL": "claude-sonnet",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-haiku",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-  },
+    "CLAUDE_CODE_USE_VERTEX": "1",
+    "CLOUD_ML_REGION": "us-east5",
+    "ANTHROPIC_VERTEX_PROJECT_ID": "seu-projeto-gcp",
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"
+  }
+}
+```
+
+> **Nota:** O login interativo via `claude` também funciona (requer Claude Code v2.1.98+) — selecione "3rd-party platform" → "Google Vertex AI". Consulte [code.claude.com/docs/en/google-vertex-ai](https://code.claude.com/docs/en/google-vertex-ai) para configuração completa de IAM e modelos.
+
+### 2.5 Confirmar instalação do Node.js (apenas para método npm legado)
+
+> **Se você vai usar o instalador nativo (recomendado pela Anthropic desde 2026), o Node.js não é necessário.** Esta etapa é obrigatória apenas se optar pelo método `npm install -g`.
+
+Abra um Git Bash e execute:
+```bash
+node -v
+```
+
+O resultado deve ser `v18.0.0` ou superior (ex.: `v22.13.0`).
+
+### 2.6 Certificado SSL corporativo — apenas se necessário
+
+Se você trabalha em ambiente corporativo com **proxy de inspeção SSL** e está recebendo erros de SSL ao usar o Claude Code, siga estas etapas:
+
+Abra um Git Bash. O script `31-claude-code-cert.sh` do **Bash RC for Devs** baixa automaticamente o certificado raiz. Para verificar se o arquivo foi criado:
+```bash
+ls -la "$HOME/.config/certs/ca_root.pem"
+openssl x509 -in "$HOME/.config/certs/ca_root.pem" -noout -subject -issuer
+```
+
+Em seguida, adicione ao `settings.json` global:
+```json
+"NODE_EXTRA_CA_CERTS": "C:\\Users\\%USERNAME%\\.config\\certs\\ca_root.pem"
+```
+
+Ou defina nas variáveis de ambiente do Windows:
+
+| Nome | Valor |
+|---|---|
+| `NODE_EXTRA_CA_CERTS` | `C:\Users\%USERNAME%\.config\certs\ca_root.pem` |
+
+---
+
+## Parte 3 — Instalação
+
+### 3.1 Instalar o Claude Code CLI (método nativo recomendado)
+
+Abra um **PowerShell** (não precisa de Administrador) e execute:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+O instalador baixa o binário nativo, o coloca em `%USERPROFILE%\.local\bin\claude.exe` e configura atualização automática em segundo plano.
+
+> **Por que não usar `npm install -g`?** O método npm é considerado legado pela Anthropic desde o início de 2026. O instalador nativo não depende do Node.js, é mais rápido, se atualiza automaticamente e é o método primário testado e suportado pela Anthropic.
+
+Feche o PowerShell e abra um novo **Git Bash** para que o PATH seja atualizado.
+
+Verifique a instalação:
+```bash
+claude --version
+claude doctor
+```
+
+### 3.2 Realizar o primeiro login
+
+O próximo passo depende do seu provedor:
+
+**Anthropic (assinatura Pro/Max):** execute `claude` — o browser abre automaticamente para login OAuth com sua conta claude.ai.
+
+**Anthropic (API Key):** se `ANTHROPIC_API_KEY` está definida no `settings.json`, o login OAuth é ignorado. O CLI conecta diretamente.
+
+**AI Gateway / LiteLLM:** se `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_BASE_URL` estão definidos, nenhum login interativo é necessário.
+
+**Bedrock / Vertex AI:** execute `claude`, selecione "3rd-party platform" e siga o assistente, **ou** configure as variáveis de ambiente conforme os templates D e E.
+
+### 3.3 Validar a configuração
+
+Após o login, execute:
+```bash
+claude /status
+```
+
+Confirme que:
+- O campo **"API Provider"** mostra o endpoint correto (gateway, Bedrock ou `api.anthropic.com`).
+- O modelo exibido é o esperado.
+
+Para um teste rápido de funcionamento:
+```bash
+claude ping
+```
+
+### 3.4 Instalar a extensão para VS Code
+
+No VS Code, abra a aba de Extensões (`Ctrl+Shift+X`) e pesquise:
+```
+publisher:Anthropic "Claude Code"
+```
+
+Instale a extensão. Ela usa automaticamente o binário CLI já instalado e as configurações já definidas.
+
+**Configurações opcionais do VS Code** (`Ctrl+Shift+P` → "User Settings (JSON)"):
+```json
+{
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.disableLoginPrompt": true
+}
+```
+
+> Para usuários de AI Gateway ou Bedrock que precisam forçar variáveis de ambiente específicas na extensão (que não herda todas as variáveis do shell), adicione:
+> ```json
+> "claudeCode.environmentVariables": [
+>   { "name": "ANTHROPIC_AUTH_TOKEN", "value": "sk-litellm-xxxxxxxxxx" },
+>   { "name": "ANTHROPIC_BASE_URL", "value": "https://seu-gateway.empresa.com" },
+>   { "name": "CLAUDE_CODE_GIT_BASH_PATH", "value": "D:\\%USERNAME%\\Apps\\Git\\bin\\bash.exe" }
+> ]
+> ```
+
+---
+
+## Parte 4 — Configuração de projeto (opcional)
+
+Para controlar permissões e comportamento do Claude Code em projetos de equipe, crie o arquivo `.claude/settings.json` na raiz do repositório:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "deny": [
-      "Read(./.env)",
-      "Read(./.git/**)",
+      "Edit(.env)",
+      "Read(.git/**)",
       "Read(**/node_modules/**)",
+      "Read(./build/**)",
+      "Read(./dist/**)",
       "Read(**/*.pem)",
       "Read(**/*.key)"
     ]
@@ -338,302 +341,113 @@ Use `ANTHROPIC_AUTH_TOKEN` (não `ANTHROPIC_API_KEY`) quando o gateway autentica
 }
 ```
 
-> **Nota sobre modelos não-Anthropic via gateway:** Se o seu gateway expõe modelos de outros provedores (Gemini, GPT-4o, etc.) com um adaptador de formato Anthropic (como o LiteLLM faz), você pode tentar usá-los definindo o nome do modelo em `ANTHROPIC_MODEL`. A experiência é funcional, mas inferior ao uso com modelos Claude nativos, pois o Claude Code é otimizado para os recursos específicos da API Anthropic.
+> **Versionar no git:** este arquivo deve ser commitado. Para preferências pessoais que não devem ser compartilhadas, use `.claude/settings.local.json` e adicione-o ao `.gitignore`.
 
 ---
 
-### 2.9. Configurar a Extensão do Claude Code para VS Code (opcional)
+## Parte 5 — Desinstalação
 
-Antes de instalar a extensão, defina as configurações no VS Code:
-
-1. Pressione `Ctrl`+`Shift`+`P`, escreva `User Settings`, e clique em **User Settings (JSON)**.
-
-2. Adicione as seguintes linhas (ajuste os valores conforme seu caso de uso na seção 2.8):
-
-```json
-{
-  "claudeCode.preferredLocation": "panel",
-  "claudeCode.disableLoginPrompt": false,
-  "claudeCode.environmentVariables": [
-    {
-      "name": "ANTHROPIC_AUTH_TOKEN",
-      "value": "sk-SeuTokenNoGateway"
-    },
-    {
-      "name": "ANTHROPIC_BASE_URL",
-      "value": "https://seu-gateway.empresa.com"
-    },
-    {
-      "name": "ANTHROPIC_MODEL",
-      "value": "claude-sonnet"
-    },
-    {
-      "name": "ANTHROPIC_DEFAULT_SONNET_MODEL",
-      "value": "claude-sonnet"
-    },
-    {
-      "name": "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-      "value": "claude-haiku"
-    },
-    {
-      "name": "ANTHROPIC_DEFAULT_OPUS_MODEL",
-      "value": "claude-sonnet"
-    },
-    {
-      "name": "CLAUDE_CODE_SUBAGENT_MODEL",
-      "value": "claude-haiku"
-    },
-    {
-      "name": "CLAUDE_CODE_GIT_BASH_PATH",
-      "value": "D:\\SeuUsuario\\Apps\\Git\\bin\\bash.exe"
-    },
-    {
-      "name": "NODE_EXTRA_CA_CERTS",
-      "value": "C:\\Users\\SeuUsuario\\.config\\certs\\ca_root.pem"
-    }
-  ]
-}
-```
-
-> **Por que configurar na extensão?** A extensão do VS Code não herda automaticamente as variáveis de ambiente definidas nos scripts Bash (`31-claude-code-envs.sh`). As configurações acima garantem que ela funcione corretamente independente do terminal.
-
-> **Assinantes Pro/Max:** Para a extensão VS Code, o login via OAuth não é suportado diretamente. Gere um token com `claude setup-token` no terminal e use-o como `ANTHROPIC_AUTH_TOKEN` na configuração da extensão, **ou** use `ANTHROPIC_API_KEY` com uma chave do Console.
-
----
-
-## 3. Instalar o Claude Code
-
-### 3.1. Instalar o Claude Code CLI (instalador nativo — recomendado)
-
-Confirme que todas as etapas da seção 2 foram concluídas. Então:
-
-1. Abra um **Prompt de Comandos (`cmd.exe`)** ou **PowerShell**.
-
-2. Execute o comando de instalação:
-
-   **Via CMD:**
-   ```cmd
-   curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
-   ```
-
-   **Via PowerShell:**
-   ```powershell
-   irm https://claude.ai/install.ps1 | iex
-   ```
-
-3. Feche **todas** as janelas de terminal abertas.
-
-4. Abra um novo Git Bash (para carregar as variáveis de ambiente) e verifique a instalação:
-
-   ```bash
-   claude --version
-   claude doctor   # diagnóstico completo: auth, PATH, configuração, MCP
-   ```
-
-### 3.2. Autenticação na Primeira Execução
-
-O processo varia conforme seu caso de uso:
-
-**Assinatura Pro/Max:** Execute `claude` no Git Bash. O browser abrirá automaticamente para login. Se não abrir, pressione `c` para copiar a URL e colá-la manualmente.
-
-**API direta / AI Gateway:** Se `ANTHROPIC_API_KEY` ou `ANTHROPIC_AUTH_TOKEN` estiverem definidos no `settings.json`, o Claude Code os usará automaticamente sem abrir o browser.
-
-**Bedrock / Vertex AI:** Configure as credenciais do provedor antes de executar `claude`. Não é necessário login Anthropic.
-
-### 3.3. Validar que o provedor correto está sendo usado
-
-Dentro do Claude Code, execute:
-
-```
-/status
-```
-
-Verifique se o campo **API Provider** exibe o endpoint correto (URL do gateway, endpoint do Bedrock, etc.) e não o endpoint padrão da Anthropic, caso seu caso de uso seja diferente.
-
-### 3.4. Instalar a Extensão para VS Code
-
-1. Na barra lateral de Extensões do VS Code (`Ctrl`+`Shift`+`X`), pesquise:
-   ```
-   publisher:Anthropic "Claude Code"
-   ```
-
-2. Clique em **Instalar**.
-
-3. Após a instalação, o ícone do Claude Code aparecerá na barra lateral. Na primeira abertura, a extensão usa o CLI já instalado e as configurações do `settings.json` da extensão definidas na seção 2.9.
-
----
-
-## 4. Hierarquia de Configurações do Claude Code
-
-O Claude Code lê configurações em múltiplas camadas. Configurações mais específicas têm precedência sobre as mais gerais:
-
-| Prioridade | Escopo | Local | Quando usar |
-| :---: | --- | --- | --- |
-| **1** | Gerenciado (Managed) | Políticas de TI (registro Windows, MDM) | Políticas corporativas obrigatórias |
-| **2** | Linha de comando | `claude --model nome-do-modelo` | Testes pontuais e automação |
-| **3** | Local (projeto pessoal) | `PROJETO/.claude/settings.local.json` | Preferências pessoais não versionadas |
-| **4** | Projeto (compartilhado) | `PROJETO/.claude/settings.json` | Configurações da equipe (no Git) |
-| **5** | Usuário (global) | `$HOME/.config/claude/settings.json` | Preferências do usuário em todos os projetos |
-
-> **Nota:** O escopo de **Shell** (`export` via scripts Bash) foi removido do quadro acima pois **não afeta a extensão do VS Code**, apenas sessões do terminal. Para garantir consistência entre CLI e extensão, prefira definir variáveis no `settings.json` global (prioridade 5) ou nas variáveis de ambiente do Windows.
-
----
-
-## 5. Scripts Bash do Bash RC for Devs
-
-O **Bash RC for Devs** fornece dois scripts que são carregados automaticamente pelo `.bashrc` ao abrir o Git Bash:
-
-### `31-claude-code-envs.sh`
-
-Valida as variáveis de ambiente necessárias para o Claude Code ao abrir o Git Bash. Detecta automaticamente o modo de autenticação em uso (OAuth, API Key, Gateway, Bedrock, Vertex) e exibe avisos para configurações ausentes ou potencialmente problemáticas.
-
-### `31-claude-code-cert.sh`
-
-**Apenas para ambientes corporativos com proxy de inspeção SSL.** Baixa o certificado raiz de `google.com:443`, compara com o certificado existente pelo fingerprint SHA-256, e atualiza o arquivo somente se tiver mudado. Exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE` para a sessão. Se `NODE_EXTRA_CA_CERTS` já estiver definida externamente (variável de ambiente do Windows), respeita o valor existente sem sobrescrever.
-
----
-
-## 6. Configuração de Projeto (para equipes)
-
-Para controlar o comportamento do Claude Code em um repositório específico, crie `.claude/settings.json` na raiz do projeto:
-
-```json
-{
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "permissions": {
-    "allow": [
-      "Bash(git status)",
-      "Bash(npm test)",
-      "Bash(npm run lint)",
-      "Read(./src/**)",
-      "Read(./docs/**)"
-    ],
-    "deny": [
-      "Read(./.env)",
-      "Read(./secrets/**)",
-      "Bash(rm -rf *)",
-      "Bash(sudo *)"
-    ]
-  }
-}
-```
-
-Versione este arquivo no Git (`git add .claude/settings.json`). Para preferências pessoais não compartilhadas, use `.claude/settings.local.json` (ignorado pelo Git automaticamente pelo Claude Code).
-
----
-
-## 7. Desinstalação
-
-### 7.1. Desinstalar a Extensão do VS Code
-
-1. Na aba de Extensões, selecione **Claude Code** e clique em **Uninstall**.
-2. Pressione `Ctrl`+`Shift`+`P` → **User Settings (JSON)** e remova o bloco `claudeCode.*` do arquivo.
-
-### 7.2. Desinstalar o Claude Code CLI
-
+### CLI
 ```bash
-rm "$USERPROFILE/.local/bin/claude.exe"  # remove o binário
-rm -rf "$USERPROFILE/.claude"            # remove diretório de dados
-rm "$USERPROFILE/.claude.json"           # remove preferências
+rm "$USERPROFILE/.local/bin/claude.exe"
+rm -rf "$USERPROFILE/.claude"
+rm -f "$USERPROFILE/.claude.json"
 ```
 
-### 7.3. Limpar Variáveis de Ambiente do Windows
+### Extensão VS Code
+Vá à aba Extensões, selecione "Claude Code" e clique em "Uninstall". Em seguida, remova as entradas do `settings.json` do VS Code.
 
-Abra **"Editar as variáveis de ambiente para sua conta"** e remova:
-
+### Variáveis de ambiente do Windows
+Abra "Editar as variáveis de ambiente para sua conta" e remova:
+- `CLAUDE_CODE_DIR`
 - `CLAUDE_CODE_GIT_BASH_PATH`
-- `CLAUDE_CONFIG_DIR`
-- `NODE_EXTRA_CA_CERTS` (somente se não usada por outras ferramentas)
-- Quaisquer outras variáveis iniciadas com `ANTHROPIC_` ou `CLAUDE_CODE_`
+- `NODE_EXTRA_CA_CERTS` (se não for usada por outras ferramentas)
 
 ---
 
-## 8. Troubleshooting
+## Parte 6 — Referência rápida
 
-| Sintoma | Causa provável | Solução |
-| --- | --- | --- |
-| `claude: command not found` | PATH não atualizado | Feche e reabra o terminal. Verifique se `$HOME/.local/bin` está no PATH |
-| `Git Bash not found` | `CLAUDE_CODE_GIT_BASH_PATH` incorreta | Defina a variável apontando para o `bash.exe` correto |
-| `UNABLE_TO_VERIFY_LEAF_SIGNATURE` | Proxy SSL corporativo sem certificado | Configure `NODE_EXTRA_CA_CERTS` (seção 2.7) |
-| Cobranças inesperadas via API | `ANTHROPIC_API_KEY` definida acidentalmente | Remova a variável; use OAuth para assinaturas Pro/Max |
-| Browser não abre no login | Ambiente sem GUI (servidor remoto) | Pressione `c` para copiar a URL e cole manualmente |
-| `/status` mostra endpoint Anthropic quando deveria mostrar o gateway | `ANTHROPIC_AUTH_TOKEN` ou `ANTHROPIC_BASE_URL` não carregados | Confirme se as variáveis estão no `settings.json` global ou nas variáveis do Windows |
+### 6.1 Caminhos no Windows (instalação nativa)
 
-**Comandos úteis para diagnóstico:**
+| Item | Caminho |
+|---|---|
+| Binário | `%USERPROFILE%\.local\bin\claude.exe` |
+| Settings global (XDG) | `%USERPROFILE%\.config\claude\settings.json` |
+| Credenciais OAuth | `%USERPROFILE%\.claude\.credentials.json` |
+| Preferências da UI | `%USERPROFILE%\.claude.json` |
+
+### 6.2 Variáveis de ambiente essenciais
+
+| Variável | Finalidade |
+|---|---|
+| `CLAUDE_CODE_DIR` | Diretório de configuração global (obrigatório no padrão XDG) |
+| `CLAUDE_CODE_GIT_BASH_PATH` | Localização do `bash.exe` no Windows |
+| `ANTHROPIC_API_KEY` | Chave de API do Console da Anthropic |
+| `ANTHROPIC_AUTH_TOKEN` | Token de autenticação para AI Gateway / LiteLLM |
+| `ANTHROPIC_BASE_URL` | URL do gateway ou proxy (quando não for a Anthropic direto) |
+| `CLAUDE_CODE_USE_BEDROCK` | Habilitar integração com AWS Bedrock (`1`) |
+| `CLAUDE_CODE_USE_VERTEX` | Habilitar integração com GCP Vertex AI (`1`) |
+| `ANTHROPIC_VERTEX_PROJECT_ID` | ID do projeto GCP para Vertex AI |
+| `CLOUD_ML_REGION` | Região GCP para Vertex AI |
+| `AWS_REGION` | Região AWS para Bedrock |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | Sobrescrever o modelo Sonnet padrão |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | Sobrescrever o modelo Haiku padrão |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | Sobrescrever o modelo Opus padrão (útil para redirecionar para Sonnet) |
+| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Desabilitar headers beta (essencial para gateways/Bedrock/Vertex) |
+| `CLAUDE_CODE_DISABLE_TELEMETRY` | Desabilitar telemetria |
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | Desabilitar tráfego não-essencial |
+| `NODE_EXTRA_CA_CERTS` | Certificado CA raiz para ambientes corporativos com proxy SSL |
+
+> Referência completa: [code.claude.com/docs/en/env-vars](https://code.claude.com/docs/en/env-vars)
+
+### 6.3 Comandos úteis
 
 ```bash
-claude --version              # versão instalada
-claude doctor                 # diagnóstico completo
-env | grep -E 'ANTHROPIC|CLAUDE'  # lista todas as variáveis ativas
+claude --version          # verificar versão instalada
+claude doctor             # diagnóstico completo do ambiente
+claude /status            # mostrar provedor e modelo em uso
+claude ping               # testar conectividade com o LLM
+claude update             # atualizar para a versão mais recente
+claude /model             # selecionar modelo interativamente
 ```
 
----
+### 6.4 Troubleshooting
 
-## 9. Estimativa de Custos
-
-### Planos de Assinatura da Anthropic
-
-| Plano | Custo Fixo | Claude Code Incluído? |
-| :---: | :---: | :---: |
-| Free | $0 | Não |
-| Pro | $20/mês | Sim |
-| Max | $100–200/mês | Sim (limites maiores) |
-| Team | a partir de $30/usuário/mês | Sim |
-
-### Uso via API ou Gateway (pay-as-you-go — exemplo com Claude Sonnet 4.6)
-
-| Tipo de token | Custo aproximado |
-| --- | --- |
-| Entrada (input) | ~$3 / 1M tokens |
-| Saída (output) | ~$15 / 1M tokens |
-| Cache | ~$0.30 / 1M tokens |
-
-**Exemplos de custo por tarefa:**
-
-- Scaffold de projeto Frontend (React, do zero): ~150k tokens entrada + 20k saída ≈ **$0.75**
-- Scaffold de projeto Backend (Node.js, do zero): ~100k tokens entrada + 15k saída ≈ **$0.52**
-
-> **Recomendação:** Se você usa API ou gateway, configure um orçamento máximo mensal (sugestão inicial: USD 25/mês) e monitore o consumo diariamente.
-
----
-
-## Apêndice A — Diagrama de Arquitetura
-
-```mermaid
-graph TD
-
-subgraph "Notebook do Desenvolvedor (Windows 11)"
-    User --> CLI["Claude Code (CLI)"]
-    VSCode -- "Extensão" --> CLI
-    CLI -- "Executa comandos" --> BASH[Git Bash]
-    CLI -- "Variáveis de Ambiente" --> RT[Runtime Node.js/Bun]
-end
-
-subgraph "Provedores (escolha um)"
-    ANT["Anthropic Cloud\n(OAuth / API Key)"]
-    GW["AI Gateway\n(LiteLLM / Genial)\n→ ANTHROPIC_AUTH_TOKEN"]
-    VTX["GCP Vertex AI\n→ CLAUDE_CODE_USE_VERTEX"]
-    BDR["AWS Bedrock\n→ CLAUDE_CODE_USE_BEDROCK"]
-end
-
-RT -- "HTTPS" --> ANT
-RT -- "HTTPS (Token Bearer)" --> GW
-RT -- "HTTPS (ADC GCP)" --> VTX
-RT -- "HTTPS (AWS Credentials)" --> BDR
+**Suprimir validações do script Bash RC for Devs (para testes):**
+```bash
+CLAUDE_SKIP_VALIDATION=1 bash
 ```
 
+**Ver diagnóstico detalhado:**
+```bash
+CLAUDE_DEBUG=1 bash
+```
+
+**Verificar variáveis carregadas:**
+```bash
+env | grep -E "CLAUDE|ANTHROPIC|NODE_EXTRA"
+```
+
+**Erro "Unexpected value(s) for the anthropic-beta header":**
+Adicione ao `settings.json`: `"CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"`
+
+**Erro de SSL em ambiente corporativo:**
+Configure `NODE_EXTRA_CA_CERTS` apontando para o arquivo `.pem` do certificado raiz da empresa.
+
+**Claude Code não encontra o Git Bash:**
+Verifique se `CLAUDE_CODE_GIT_BASH_PATH` aponta para o `bash.exe` correto com `where bash` no Git Bash.
+
 ---
 
-## Apêndice B — Fontes
+## Anexo — Fontes
 
-| Fonte | Acesso |
-| --- | --- |
-| [Quickstart — Claude Code Docs](https://code.claude.com/docs/en/quickstart) | Abril/2026 |
-| [Advanced setup — Claude Code Docs](https://code.claude.com/docs/en/setup) | Abril/2026 |
-| [Authentication — Claude Code Docs](https://code.claude.com/docs/en/authentication) | Abril/2026 |
-| [Settings — Claude Code Docs](https://code.claude.com/docs/en/settings) | Abril/2026 |
-| [LLM Gateway — Claude Code Docs](https://code.claude.com/docs/en/llm-gateway) | Abril/2026 |
-| [Google Vertex AI — Claude Code Docs](https://code.claude.com/docs/en/google-vertex-ai) | Abril/2026 |
-| [Claude Code Quickstart — LiteLLM](https://docs.litellm.ai/docs/tutorials/claude_responses_api) | Abril/2026 |
-| [Managing API key env vars — Anthropic Help Center](https://support.claude.com/en/articles/12304248-managing-api-key-environment-variables-in-claude-code) | Abril/2026 |
-| [Choosing a Claude plan — Anthropic Help Center](https://support.claude.com/en/articles/11049762-choosing-a-claude-plan) | Abril/2026 |
+- [Claude Code Docs — Quickstart](https://code.claude.com/docs/en/quickstart)
+- [Claude Code Docs — Advanced Setup](https://code.claude.com/docs/en/setup)
+- [Claude Code Docs — Environment Variables](https://code.claude.com/docs/en/env-vars)
+- [Claude Code Docs — Settings](https://code.claude.com/docs/en/settings)
+- [Claude Code Docs — Authentication](https://code.claude.com/docs/en/authentication)
+- [Claude Code Docs — Amazon Bedrock](https://code.claude.com/docs/en/amazon-bedrock)
+- [Claude Code Docs — Google Vertex AI](https://code.claude.com/docs/en/google-vertex-ai)
+- [Claude Code Docs — LLM Gateway](https://code.claude.com/docs/en/llm-gateway)
+- [Claude Code Docs — Network Configuration](https://code.claude.com/docs/en/network-config)
+- [Planos de Assinatura do Claude Code](https://support.claude.com/en/articles/11049762-choosing-a-claude-plan)
