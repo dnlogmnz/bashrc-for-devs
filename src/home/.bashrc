@@ -24,7 +24,7 @@ export \
     XDG_STATE_HOME="${_xdg[3]}"
 
 # Carrega (source) dos scripts de inicialização do shell (run command files)
-for rc in $XDG_CONFIG_HOME/bash/*.sh; do
+for rc in $XDG_CONFIG_HOME/bashrc/*.sh; do
     source "$rc"
 done
 
