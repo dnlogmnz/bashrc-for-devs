@@ -1,0 +1,11 @@
+#
+# Arquivo: uv.toml
+# Configuração global do UV
+# =============================================================================
+
+# Configurações gerais
+link-mode = "copy"
+python-downloads = "manual"
+
+# Diretórios
+cache-dir = "{{UV_CACHE_DST}}"

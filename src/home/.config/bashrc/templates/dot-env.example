@@ -1,0 +1,13 @@
+#
+# Arquivo: .env
+# Variaveis de ambiente para uso da aplicação - inclui senhas / chaves de API
+# Manter sempre no .gitignore para que não seja enviado ao repositório
+# =============================================================================
+
+# secrets:
+API_KEY="{{API_KEY}}"
+
+#configmap:
+
+# Biblioteca 'logger' - definir o nível de detalhe nos logs
+LOG_LEVEL="INFO"

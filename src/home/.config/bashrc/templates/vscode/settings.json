@@ -1,0 +1,93 @@
+{
+    // Configuração de cores do VS Code
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#3A3A32",
+        "titleBar.inactiveBackground": "#2a2a2a",
+        "titleBar.activeForeground": "#cccccc",
+        "titleBar.inactiveForeground": "#888888",
+        "statusBar.background": "#323232",
+        "statusBar.foreground": "#cccccc",
+        "statusBar.noFolderBackground": "#323232",
+        "statusBar.debuggingBackground": "#323232"
+    },
+
+    // Comportamento geral do VS Code
+    "extensions.ignoreRecommendations": true,                 // Remove "Dicas" e sugestões de extensões (ex: "Você quer instalar a extensão X?")
+    "files.autoSave": "onFocusChange",                        // Salva automaticamente ao mudar de foco (ex: ao clicar fora do editor)
+    "update.showReleaseNotes": false,                         // Impede a abertura automática da aba de novidades após atualizações
+    "window.restoreWindows": "folders",                       // Ao abrir o VS Code, restaurar apenas as pastas/workspaces abertos, mas não os arquivos individuais
+    "workbench.tips.enabled": false,                          // Remove dicas e sugestões exibidas na interface
+    "workbench.secondarySideBar.defaultVisibility": "hidden", // Por padrão, esconde a barra lateral direita (ex: extensão de docker, etc)
+    "workbench.settings.enableNaturalLanguageSearch": false,  // Impede envio de suas buscas por configurações para processamento online
+
+    // Privacidade e telemetria
+    "aws.telemetry": false,                       // Desativa rastreio da extensões da AWS
+    "azure.telemetry.enabled": false,             // Desativa rastreio da extensões da Azure
+    "dotnet.help.firstTimeExperience": false,     // Desativa avisos iniciais do .NET (C#)
+    "google.cloud.telemetry.enabled": false,      // Desativa rastreio da extensões da GCP
+    "redhat.telemetry.enabled": false,            // Desativa rastreio das extensões da Red Hat (YAML, Java, OpenShift)
+    "telemetry.telemetryLevel": "off",            // TELEMETRIA GLOBAL (Microsoft): Desativa o rastreio de uso e erros do VS Code
+
+    // Terminal externo
+    "terminal.external.windowsExec": "C:\\Users\\${env:USERNAME}\\AppData\\Local\\Microsoft\\WindowsApps\\wt.exe",
+
+    // Terminal integrado
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.profiles.windows": {
+        // Git Bash (bash.exe) do Git para Windows
+        "Git Bash": {
+            "path": "C:\\Users\\${env:USERNAME}\\AppData\\Local\\Programs\\Git\\usr\\bin\\bash.exe",
+            "args": [ "--login", "-i" ]
+        },
+        // Prompt de Comandos (cmd.exe) do Windows
+        "Command Prompt": {
+            "path": "${env:windir}\\System32\\cmd.exe",
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        // Não apresenta o PowerShell na lista de seleção do VS Code
+        "PowerShell": null
+    },
+
+    // Atlassian
+    "atlascode.bitbucket.enabled": false,  // Desativa integração com Bitbucket
+
+    // Linguagens
+    "python.defaultInterpreterPath": "D:\\${env:USERNAME}\\Apps\\Python\\bin\\python.exe",
+
+    // Git e GitHub Copilot
+    "git.enableSmartCommit": true,               // Permite fazer commit direto pelo painel Source Control, sem abrir o terminal
+    "chat.mcp.gallery.enabled": true,            // Controla acesso à galeria pública de servidores MCP no GitHub Copilot Chat
+    "chat.viewSessions.orientation": "stacked",  // "sideBySide" exibe o histórico de chat ao lado da conversa ativa; "stacked" exibe acima dela
+    "github.copilot.nextEditSuggestions.enabled": true, // Habilita sugestões de edição de código baseadas no contexto do arquivo aberto
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        { "text": "Siga o padrão Conventional Commits." },
+        { "text": "Seja extremamente direto. Use no máximo 5 a 7 palavras em português do Brasil." },
+        { "text": "Não adicione descrições longas ou explique o porquê. Apenas o que mudou." },
+        { "text": "Analise o git diff e adicione o código correspondente no INÍCIO da mensagem baseado nestas regras:" },
+        { "text": "feat: para novas funcionalidades." },
+        { "text": "fix: para correções de bugs." },
+        { "text": "refactor: para refatoração de código que não corrige bug nem adiciona funcionalidade." },
+        { "text": "style: para mudanças de UI, CSS ou formatação de código (espaços, ponto e vírgula)." },
+        { "text": "docs: para adições ou atualizações de documentação (README, comentários)." },
+        { "text": "chore: para atualizações de configuração, tarefas de rotina ou ferramentas." },
+        { "text": "perf: para melhorias de performance." },
+        { "text": "test: para adição de testes ausentes ou correção de testes existentes." },
+        { "text": "ci: para mudanças em arquivos e scripts de CI/CD (GitHub Actions, Docker, etc)." },
+        { "text": "build: para mudanças que afetam o sistema de build ou dependências externas (npm, yarn, pip)." },
+        { "text": "revert: para reverter um commit anterior." },
+        { "text": "security: para correções ou melhorias relacionadas à segurança." },
+        { "text": "init: para a criação inicial do projeto ou primeiro commit." },
+        { "text": "release: para lançamento de novas versões ou tags." },
+        { "text": "wip: para trabalhos em progresso." },
+        { "text": "Exemplo de saída esperada: 'feat: adicionar botão de login'." }
+    ],
+
+    // MongoDB
+    "mdb.mcp.server": "autoStartDisabled", // Impede que o MongoDB MCP inicie automaticamente ao abrir o VS Code
+
+    // Claude Code
+    "claudeCode.preferredLocation": "sidebar",  // "panel" (padrão): abre Claude Code no painel inferior (como uma nova tab de editor ao lado do terminal). "sidebar": Abre o Claude Code no sidebar primário ou secundário
+    "claudeCode.disableLoginPrompt": true,      // Desativa o prompt de login do Claude Code (requer que você já tenha feito login pelo navegador, ou que tenha a variável de ambiente CLAUDE_CODE_SESSION definida, ou que use um AI Gateway)
+
+}

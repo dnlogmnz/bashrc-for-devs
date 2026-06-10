@@ -48,7 +48,7 @@ O padrão XDG define variáveis de ambiente que apontam para locais específicos
 Neste repositório, focamos na organização do seu ambiente Bash dentro dos diretórios preconizados acima:
 
 1.  **Ponto de Entrada**: O Bash utiliza arquivos na raiz do `$HOME` para iniciar a sessão. Este projeto recomenda centralizar a lógica de carregamento no `~/.bashrc`, garantindo que tanto *interactive shells* quanto *login shells* (através do `~/.bash_profile` ou `~/.profile`) carreguem as configurações modulares.
-2.  **Configurações**: Todos os scripts de inicialização, aliases e funções serão armazenados de forma organizada em `~/.config/bash/`.
+2.  **Configurações**: Todos os scripts de inicialização, aliases e funções serão armazenados de forma organizada em `~/.config/bashrc/`.
 3.  **Executáveis**: Scripts utilitários e wrappers (como os do `uv`) devem residir em `~/.local/bin/`, que é adicionado ao seu `$PATH`.
 4.  **Ambiente**: Variáveis de ambiente são definidas nos scripts `envs` para redirecionar ferramentas (como Terraform e Python) a usarem `~/.local/share` e `~/.local/state`, mantendo o raiz de seu diretório pessoal sempre limpo.
 
@@ -64,7 +64,7 @@ Neste repositório, focamos na organização do seu ambiente Bash dentro dos dir
 
 ## 📂 Estrutura do Repositório e Scripts
 
-Este projeto mantém os scripts em `src/home/.config/bash`. A numeração dos arquivos garante que as dependências sejam carregadas na ordem correta (ex: carregar variáveis de ambiente antes de funções que dependem delas).
+Este projeto mantém os scripts em `src/home/.config/bashrc/`. A numeração dos arquivos garante que as dependências sejam carregadas na ordem correta (ex: carregar variáveis de ambiente antes de funções que dependem delas).
 
 
 ### 🛠️ Scripts de Configuração de Ambiente (`envs`)
@@ -103,7 +103,7 @@ Os scripts terminados em `-functions.sh` declaram funções complexas para autom
 ### 1. Criar a estrutura de diretórios
 No seu terminal, execute:
 ```bash
-mkdir -p ~/.config/bash/
+mkdir -p ~/.config/bashrc/
 mkdir -p ~/.local/bin
 ```
 
@@ -123,8 +123,8 @@ export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
 # Carga (source) dos scripts de inicialização do shell (run command files)
-if [ -d $XDG_CONFIG_HOME/bash ]; then
-    for rc in $XDG_CONFIG_HOME/bash/*.sh; do
+if [ -d $XDG_CONFIG_HOME/bashrc ]; then
+    for rc in $XDG_CONFIG_HOME/bashrc/*.sh; do
         [ -f "$rc" ] && source "$rc"
     done
 fi

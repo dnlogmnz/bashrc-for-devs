@@ -8,21 +8,28 @@
 export LANG=pt_BR.UTF-8
 export LC_ALL=pt_BR.UTF-8
 
-# Padrão FHS (Filesystem Hierarchy Standard) / XDG (X Desktop Group)
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_STATE_HOME="$HOME/.local/state"
-export XDG_CACHE_HOME="$HOME/.cache"
+# Mapeia variáveis de ambiente com diretórios XDG normalizadas com "cygpath -u" para array "_xdg"
+mapfile -t _xdg < <(cygpath -u \
+    "${XDG_CACHE_HOME:-$HOME/.cache}" \
+    "${XDG_CONFIG_HOME:-$HOME/.config}" \
+    "${XDG_DATA_HOME:-$HOME/.local/share}" \
+    "${XDG_STATE_HOME:-$HOME/.local/state}"
+    )
 
-# Carga (source) dos scripts de inicialização do shell (run command files)
-if [ -d $XDG_CONFIG_HOME/bash ]; then
-    for rc in $XDG_CONFIG_HOME/bash/*.sh; do
-        [ -f "$rc" ] && source "$rc"
-    done
-fi
+# Define as variáveis de diretórios padrão XDG (X Desktop Group)
+export \
+    XDG_CACHE_HOME="${_xdg[0]}" \
+    XDG_CONFIG_HOME="${_xdg[1]}"\
+    XDG_DATA_HOME="${_xdg[2]}" \
+    XDG_STATE_HOME="${_xdg[3]}"
 
-# Limpa a variável rc do escopo global
-unset rc local_bin
+# Carrega (source) dos scripts de inicialização do shell (run command files)
+for rc in $XDG_CONFIG_HOME/bash/*.sh; do
+    source "$rc"
+done
+
+# Limpa variáveis do escopo global
+unset rc _xdg
 
 #--------------------------------------------------------------------------------
 #--- Final do script ~/.bashrc

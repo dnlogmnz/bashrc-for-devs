@@ -10,20 +10,21 @@ Modular Bash configuration framework for Windows developers using Git Bash. Scri
 
 ```
 src/home/
-├── .config/bash/          # Shell init scripts (sourced alphabetically by ~/.bashrc)
-│   ├── utils/             # Standalone migration/utility scripts
-│   └── *.sh               # Numbered init scripts
-└── .local/bin/helpers/    # User executables for tool management
-extras/
-├── claude/                # Example Claude Code settings.json templates
-└── vscode/                # Example VS Code settings
-docs/
-└── CLAUDE-CODE.md         # Claude Code setup guide (authentication, proxies, etc.)
+├── .config/bashrc/        # Scripts de inicialização (executados em ordem alfabética pelo ~/.bashrc)
+│   ├── utils/             # Scripts de migração e utilitários
+│   ├── templates/         # Templates de configuração (uv, ruff, Claude, VS Code)
+│   └── *.sh               # Scripts numerados por prefixo de dependência
+├── .local/bin/bashrc/     # Scripts executáveis e helpers para gerenciamento de ferramentas
+└── .local/share/bashrc/help/  # Documentação e arquivos de ajuda do usuário
+src/home/.config/bashrc/templates/
+├── claude/                # Templates de settings.json do Claude Code
+├── vscode/                # Templates de settings.json do VS Code
+└── *.example              # Templates de configuração (dot-env, uv, ruff, pyproject.toml, etc.)
 ```
 
 ## Script Loading Architecture
 
-`~/.bashrc` sources all `~/.config/bash/*.sh` files in alphabetical order. The numeric prefix determines load order and encodes dependencies:
+`~/.bashrc` sources all `~/.config/bashrc/*.sh` files in alphabetical order. The numeric prefix determines load order and encodes dependencies:
 
 | Prefix | Responsibility |
 |--------|----------------|
@@ -67,8 +68,8 @@ Always use these functions for user-facing output — never raw `echo`.
 ## Adding New Tool Support
 
 To add a new tool (e.g., `terraform`):
-1. Create `src/home/.config/bash/XX-tool-envs.sh` (numbered to load after dependencies).
-2. Optionally create `src/home/.config/bash/XX-tool-functions.sh` for complex helpers.
+1. Crie `src/home/.config/bashrc/XX-tool-envs.sh` (numerado para carregar após dependências).
+2. Opcionalmente crie `src/home/.config/bashrc/XX-tool-functions.sh` para helpers complexos.
 3. Source `00-bash-functions.sh` functions are available — no need to re-import them.
 4. Follow the pattern: validate paths exist, add to `$PATH`, emit `displayFailure` if required vars are missing.
 
