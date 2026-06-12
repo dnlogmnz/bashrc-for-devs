@@ -65,3 +65,39 @@ Para adicionar uma nova ferramenta (ex.: `terraform`):
 ## Idioma
 
 O `README.md` e os comentários inline dos scripts estão em **português (pt-BR)**. As mensagens de commit seguem o mesmo idioma (ver git log). Identificadores de código, nomes de funções e variáveis estão em inglês.
+
+## Convenção de Mensagens de Commit
+
+**Cabeçalho** (estilo Conventional Commits): `<tipo>: <resumo curto, pt-BR, ≤ ~50 chars>`.
+Tipos: `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build`, `chore`, `ci`.
+
+**Corpo** — três rótulos fixos, **todos opcionais**, sempre nesta ordem:
+
+| Rótulo | Pergunta que responde |
+|--------|-----------------------|
+| `Motivo:` | Por que a mudança foi feita? (problema, necessidade, gatilho, contexto) |
+| `Mudança:` | O que foi feito? |
+| `Impacto:` | O que isso afeta? (breaking change, migração, efeitos colaterais, follow-ups) |
+
+**Rodapé** (opcional): `BREAKING CHANGE: ...`, referências (`Refs #123`), `Co-Authored-By:`.
+
+> Regra de ouro: **use só o que agrega.** Commit trivial pode ser só o cabeçalho — não force as três seções.
+
+Para mensagens multi-linha, prefira heredoc com delimitador entre aspas (imune a `'`, `$`, backticks):
+
+```bash
+git commit -F - <<'EOF'
+refactor: Remoção dos prefixos numéricos dos RC scripts
+
+Motivo:
+Os prefixos numéricos codificavam a ordem de carregamento via ordenação
+alfabética do glob, mas tornavam os nomes ruidosos e frágeis.
+
+Mudança:
+A ordem passa a ser expressa explicitamente no ~/.bashrc: core primeiro,
+bash-junctions por último, os demais em ordem alfabética entre eles.
+
+Impacto:
+Sem mudança de comportamento em runtime — apenas nomes e ordem de carga.
+EOF
+```
