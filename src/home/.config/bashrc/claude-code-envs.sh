@@ -96,10 +96,7 @@ _claude_validate_required_config() {
 
 }
 
-# Permite suprimir a validação para testes ou automação
-if [[ "${CLAUDE_SKIP_VALIDATION:-0}" != "1" ]]; then
-    _claude_validate_required_config
-fi
+_claude_validate_required_config
 
 # Limpar funções auxiliares do escopo global
 unset -f _claude_validate_required_config _claude_is_set

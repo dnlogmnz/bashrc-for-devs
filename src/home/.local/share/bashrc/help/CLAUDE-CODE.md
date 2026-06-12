@@ -459,16 +459,6 @@ claude /model             # selecionar modelo interativamente
 
 ### 6.4 Troubleshooting
 
-**Suprimir validações do script Bash RC for Devs (para testes):**
-```bash
-CLAUDE_SKIP_VALIDATION=1 bash
-```
-
-**Ver diagnóstico detalhado:**
-```bash
-CLAUDE_DEBUG=1 bash
-```
-
 **Verificar variáveis carregadas:**
 ```bash
 env | grep -E "CLAUDE|ANTHROPIC|NODE_EXTRA"
