@@ -1,5 +1,5 @@
 #
-# Script: ~/.config/bashrc/7-node-extra-certs.sh
+# Script: ~/.config/bashrc/node-extra-certs.sh
 # Gerencia o certificado raiz CA para uso de ferramentas baseadas em Node.js
 # (incluindo Claude Code instalado via npm) em ambientes corporativos.
 #
@@ -48,5 +48,5 @@ if [ -f "$cert_file" ]; then
 fi
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script 7-node-extra-certs.sh
+#--- Final do script node-extra-certs.sh
 #-------------------------------------------------------------------------------------------

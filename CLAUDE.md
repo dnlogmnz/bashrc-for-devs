@@ -17,39 +17,37 @@ src/home/
 │   │   ├── claude/            # Templates de settings.json do Claude Code
 │   │   ├── vscode/            # Templates de settings.json do VS Code
 │   │   └── *.example          # Templates de configuração (dot-env, uv, ruff, pyproject.toml, etc.)
-│   └── *.sh                   # Scripts numerados por prefixo de dependência
+│   └── *.sh                   # Scripts de inicialização (núcleo carregado primeiro; demais em ordem alfabética)
 ├── bin/                       # Scripts executáveis do projeto (Git Bash adiciona ~/bin ao PATH automaticamente)
 │   └── helpers/               # Helpers sourced pelos scripts executáveis
 └── .local/share/bashrc/help/  # Documentação e arquivos de ajuda do usuário
 ```
 
-> **Sobre `~/bin` vs `~/.local/bin`:**<br> Os scripts deste projeto ficam em `~/bin/` porque o Git Bash já adiciona esse diretório ao PATH automaticamente — não precisamos gerenciar PATH para nossos scripts. O `~/.local/bin/` continua relevante para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code), e o `8-bash-junctions.sh` garante que esse caminho esteja no PATH.
+> **Sobre `~/bin` vs `~/.local/bin`:**<br> Os scripts deste projeto ficam em `~/bin/` porque o Git Bash já adiciona esse diretório ao PATH automaticamente — não precisamos gerenciar PATH para nossos scripts. O `~/.local/bin/` continua relevante para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code), e o `bash-junctions.sh` garante que esse caminho esteja no PATH.
 
 ## Arquitetura de Carregamento dos Scripts
 
-O `~/.bashrc` carrega todos os arquivos `~/.config/bashrc/*.sh` em ordem alfabética.
-O prefixo numérico determina a ordem de carregamento e codifica as dependências:
+O `~/.bashrc` carrega os scripts `~/.config/bashrc/*.sh` em três etapas, ordenadas para respeitar as dependências entre eles:
 
-| Prefixo | Responsabilidade |
-|---------|------------------|
-| `0`     | Core Bash (variáveis de ambiente, funções de exibição) |
-| `1`     | Ferramentas — definição de variáveis e PATH (Git, Python, uv, Node.js, Claude Code) |
-| `2`     | Ferramentas — criação de diretórios e validações pós-`envs` (uv, Node.js) |
-| `7`     | Certificados (`NODE_EXTRA_CA_CERTS` para ambiente corporativo) |
-| `8`     | Junctions do Windows (`USERPROFILE` → `HOME`) |
-| `9`     | Extras (opt-outs de telemetria) |
+| Etapa | O que carrega | Por quê |
+|-------|---------------|---------|
+| 1. Núcleo (explícito, primeiro) | `bash-envs.sh`, `bash-functions.sh` | Definem `APPS_BASE`, variáveis básicas e as funções de exibição (`displayFailure`, etc.) usadas por todos os demais |
+| 2. Demais scripts (glob, alfabético) | Git, Python, uv, Node.js, Claude Code, certificados, extras | O padrão de nomes `tool-envs.sh` → `tool-folders.sh` faz o alfabético garantir que `-envs` venha antes de `-folders` |
+| 3. Junctions (explícito, por último) | `bash-junctions.sh` | Depende de variáveis e diretórios definidos pelos demais scripts rc |
+
+A ordem crítica é expressa diretamente no `~/.bashrc` (núcleo na frente via `source` por nome, junctions no fim), e o restante segue o alfabético — os nomes dos scripts **não** usam mais prefixo numérico.
 
 Os scripts utilizam os seguintes sufixos de nomenclatura:
 - `-envs.sh` — define variáveis de ambiente e entradas no PATH
 - `-folders.sh` — cria/valida diretórios e PATH dependentes das variáveis definidas em `-envs.sh`
-- `-functions.sh` — declara funções shell (reservado; nenhum script atual usa este sufixo além de `0-bash-functions.sh`)
+- `-functions.sh` — declara funções shell (reservado; nenhum script atual usa este sufixo além de `bash-functions.sh`)
 - `-aliases.sh` — declara aliases (reservado; aliases atuais estão dentro de `-envs.sh`)
 
 ## Restrições de Design
 
 - **Conformidade com XDG**.
 - **Alvo Windows/Git Bash**: usar formato de caminho Unix (`/c/Users/...`, não `C:\Users\...`).
-- **USERPROFILE tem junctions para HOME**: a lógica específica do Windows usa `mklink /J` para junctions em `8-bash-junctions.sh`.
+- **USERPROFILE tem junctions para HOME**: a lógica específica do Windows usa `mklink /J` para junctions em `bash-junctions.sh`.
 - **Escopo global limpo**: remover funções auxiliares após o uso (`unset -f func_name`); remover variáveis de loop (`unset rc`).
 - **Degradação graciosa**: falhas de validação emitem `displayWarning`/`displayFailure` em vez de abortar a sessão do shell.
 - **Sem sistema de build**: não há Makefile, package.json ou test runner.
@@ -58,10 +56,10 @@ Os scripts utilizam os seguintes sufixos de nomenclatura:
 ## Adicionando Suporte a Nova Ferramenta
 
 Para adicionar uma nova ferramenta (ex.: `terraform`):
-1. Crie `src/home/.config/bashrc/1-tool-envs.sh` para definir variáveis de ambiente e entradas no PATH.
-2. Se a ferramenta precisar de diretórios criados ou validações que dependem das variáveis, crie `src/home/.config/bashrc/2-tool-folders.sh`.
-3. Opcionalmente crie `src/home/.config/bashrc/1-tool-functions.sh` para helpers complexos.
-4. As funções de `0-bash-functions.sh` estão disponíveis — não é necessário reimportá-las.
+1. Crie `src/home/.config/bashrc/terraform-envs.sh` para definir variáveis de ambiente e entradas no PATH.
+2. Se a ferramenta precisar de diretórios criados ou validações que dependem das variáveis, crie `src/home/.config/bashrc/terraform-folders.sh` — o sufixo `-folders` ordena alfabeticamente após `-envs`, garantindo que as variáveis já existam.
+3. Opcionalmente crie `src/home/.config/bashrc/terraform-functions.sh` para helpers complexos.
+4. As funções de `bash-functions.sh` estão disponíveis — não é necessário reimportá-las.
 5. Siga o padrão: validar se os caminhos existem, adicionar ao `$PATH`, emitir `displayFailure` se variáveis obrigatórias estiverem ausentes.
 
 ## Idioma

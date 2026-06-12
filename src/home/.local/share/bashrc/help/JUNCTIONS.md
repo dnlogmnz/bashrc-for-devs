@@ -18,7 +18,7 @@ Os motivadores são os seguintes:
 
 ## Instalar o Python
 
-Use `uv` (veja a seção correspondente no `1-uv-envs.sh`). Não instale Python diretamente via python.org, winget ou Microsoft Store.
+Use `uv` (veja a seção correspondente no `uv-envs.sh`). Não instale Python diretamente via python.org, winget ou Microsoft Store.
 
 ## Instalar o AWS CLI v2
 
@@ -67,9 +67,9 @@ Aplicativos do Windows (AWS CLI, SSH, Claude Code, etc.) gravam seus arquivos de
 
 A solução é criar **junctions de diretório** (`mklink /J`) em `%USERPROFILE%` apontando para os diretórios reais sob `$HOME`. Assim, os aplicativos do Windows continuam funcionando normalmente (gravam em `C:\Users\%USERNAME%\.aws`), enquanto os arquivos físicos vivem no seu `$HOME` versionável.
 
-## Junções criadas pelo `8-bash-junctions.sh`
+## Junções criadas pelo `bash-junctions.sh`
 
-Toda vez que um novo Git Bash é aberto, o script `8-bash-junctions.sh` verifica e cria (se necessário) as seguintes junctions:
+Toda vez que um novo Git Bash é aberto, o script `bash-junctions.sh` verifica e cria (se necessário) as seguintes junctions:
 
 | Origem (`%USERPROFILE%`)       | Destino (`$HOME`)                    | Uso típico                              |
 |--------------------------------|--------------------------------------|-----------------------------------------|

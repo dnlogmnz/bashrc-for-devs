@@ -1,5 +1,5 @@
 #
-# Script: ~/.config/bashrc/8-bash-junctions.sh
+# Script: ~/.config/bashrc/bash-junctions.sh
 # Cria junctions em %USERPROFILE% apontando para pastas dotfile reais em $HOME.
 # =============================================================================
 
@@ -69,5 +69,5 @@ unset -f _resolve_home
 unset -f ensure_junction
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script 8-bash-junctions.sh
+#--- Final do script bash-junctions.sh
 #-------------------------------------------------------------------------------------------

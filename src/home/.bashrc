@@ -23,16 +23,26 @@ export \
     XDG_DATA_HOME="${_xdg[2]}" \
     XDG_STATE_HOME="${_xdg[3]}"
 
-# Garantir que a estrutura de pastas existe (evitar erro "File not found")
+# Garante que a estrutura de pastas existe (evitar erro "File not found")
 if [ ! -d "$XDG_CACHE_HOME" ] || [ ! -d "$XDG_CONFIG_HOME" ] || \
    [ ! -d "$XDG_DATA_HOME" ]  || [ ! -d "$XDG_STATE_HOME" ]; then
     mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"
 fi
 
-# Carrega (source) dos scripts de inicialização do shell (run command files)
-for rc in $XDG_CONFIG_HOME/bashrc/*.sh; do
+# Carrega primeiro os scripts que contêm definições que serão usadas pelos demais scripts rc
+source "$XDG_CONFIG_HOME/bashrc/bash-envs.sh"
+source "$XDG_CONFIG_HOME/bashrc/bash-functions.sh"
+
+# Carrega (source) dos demais scripts rc (ordem alfabética), pulando os carregados explicitamente
+for rc in "$XDG_CONFIG_HOME"/bashrc/*.sh; do
+    case "$rc" in
+        */bash-envs.sh | */bash-functions.sh | */bash-junctions.sh) continue ;;
+    esac
     source "$rc"
 done
+
+# Carrega por último: junctions dependem de variáveis e diretórios definidos pelos demais scripts rc
+source "$XDG_CONFIG_HOME/bashrc/bash-junctions.sh"
 
 # Limpa variáveis do escopo global
 unset rc _xdg

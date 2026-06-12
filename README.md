@@ -49,7 +49,7 @@ Neste repositório, focamos na organização do seu ambiente Bash dentro dos dir
 
 1.  **Ponto de Entrada**: O Bash utiliza arquivos na raiz do `$HOME` para iniciar a sessão. Este projeto recomenda centralizar a lógica de carregamento no `~/.bashrc`, garantindo que tanto *interactive shells* quanto *login shells* (através do `~/.bash_profile` ou `~/.profile`) carreguem as configurações modulares.
 2.  **Configurações**: Todos os scripts de inicialização, aliases e funções serão armazenados de forma organizada em `~/.config/bashrc/`.
-3.  **Executáveis**: Scripts utilitários e wrappers (como os do `uv`) deste projeto residem em `~/bin/`, que o Git Bash adiciona ao seu `$PATH` automaticamente (convenção `/etc/profile`). O `~/.local/bin/` segue válido para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code) e é mantido no PATH pelo `8-bash-junctions.sh`.
+3.  **Executáveis**: Scripts utilitários e wrappers (como os do `uv`) deste projeto residem em `~/bin/`, que o Git Bash adiciona ao seu `$PATH` automaticamente (convenção `/etc/profile`). O `~/.local/bin/` segue válido para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code) e é mantido no PATH pelo `bash-junctions.sh`.
 4.  **Ambiente**: Variáveis de ambiente são definidas nos scripts `envs` para redirecionar ferramentas (como Terraform e Python) a usarem `~/.local/share` e `~/.local/state`, mantendo o raiz de seu diretório pessoal sempre limpo.
 
 > **Nota sobre arquivos de inicialização**:
@@ -67,51 +67,49 @@ Neste repositório, focamos na organização do seu ambiente Bash dentro dos dir
 Este projeto mantém os scripts em `src/home/.config/bashrc/`. A numeração dos arquivos garante que as dependências sejam carregadas na ordem correta (ex: carregar variáveis de ambiente antes de funções que dependem delas).
 
 
-### 🔢 Ordem de Carregamento por Prefixo
+### 🔢 Ordem de Carregamento
 
-O `~/.bashrc` carrega `~/.config/bashrc/*.sh` em ordem alfabética. O prefixo numérico de cada script codifica suas dependências:
+O `~/.bashrc` carrega os scripts `~/.config/bashrc/*.sh` em três etapas, garantindo que as dependências entre eles sejam respeitadas:
 
-| Prefixo | Responsabilidade |
-|---|---|
-| `0` | Core Bash — variáveis básicas e funções de exibição (`displayFailure`, `displayWarning`, etc.) |
-| `1` | Ferramentas — variáveis de ambiente e PATH (Git, Python, uv, Node.js, Claude Code) |
-| `2` | Ferramentas — criação/validação de diretórios dependentes de `1-*-envs.sh` |
-| `7` | Certificados — `NODE_EXTRA_CA_CERTS` para ambientes com proxy SSL corporativo |
-| `8` | Junctions do Windows — `USERPROFILE` → `HOME` via `mklink /J` |
-| `9` | Extras — opt-outs de telemetria (AWS, Azure, GCP) |
+1. **Núcleo (explícito, primeiro)**: `bash-envs.sh` e `bash-functions.sh` são carregados por nome, antes de tudo, pois definem o `APPS_BASE`, variáveis básicas e as funções de exibição (`displayFailure`, `displayWarning`, etc.) usadas pelos demais scripts.
+2. **Demais scripts (glob, ordem alfabética)**: o restante é carregado em ordem alfabética. Os nomes seguem o padrão `ferramenta-envs.sh` → `ferramenta-folders.sh`, então o alfabético já garante que as variáveis (`-envs`) sejam definidas antes das validações de diretório (`-folders`).
+3. **Junctions (explícito, por último)**: `bash-junctions.sh` é carregado no fim, pois depende de variáveis e diretórios definidos pelos demais scripts rc.
+
+> [!NOTE]
+> Esse modelo substitui o antigo prefixo numérico nos nomes dos arquivos. A ordem crítica agora é expressa explicitamente no `~/.bashrc` (núcleo na frente, junctions no fim), e o restante segue o alfabético — tornando os nomes mais limpos e o carregamento mais previsível.
 
 ### 🛠️ Scripts de Configuração de Ambiente (`-envs.sh`)
 
 Definem variáveis de ambiente, ajustam `$PATH` e (quando faz sentido) declaram aliases curtos. Scripts atuais:
 
-*   **0-bash-envs.sh**: Histórico do Bash, configurações de `less`/`vim` em XDG, aliases (`ll`, `la`, `grep`, `npp`).
-*   **1-git-envs.sh**: `GIT_CONFIG_GLOBAL` aderente ao XDG, aliases de log.
-*   **1-python-envs.sh**: `PYTHONHISTORY`, `PYTHONUNBUFFERED`, `PYTHONIOENCODING`, `PYTHONDONTWRITEBYTECODE`.
-*   **1-uv-envs.sh**: Diretórios e configurações do `uv` (cache, tools, registry, link-mode).
-*   **1-node-envs.sh**: `NODE_HOME`, `NODE_CURRENT`, variáveis `NPM_CONFIG_*` em XDG.
-*   **1-claude-code-envs.sh**: `CLAUDE_CONFIG_DIR` em XDG, validação de autenticação, aliases `c` e `cc`.
+*   **bash-envs.sh**: Histórico do Bash, configurações de `less`/`vim` em XDG, aliases (`ll`, `la`, `grep`, `npp`).
+*   **git-envs.sh**: `GIT_CONFIG_GLOBAL` aderente ao XDG, aliases de log.
+*   **python-envs.sh**: `PYTHONHISTORY`, `PYTHONUNBUFFERED`, `PYTHONIOENCODING`, `PYTHONDONTWRITEBYTECODE`.
+*   **uv-envs.sh**: Diretórios e configurações do `uv` (cache, tools, registry, link-mode).
+*   **node-envs.sh**: `NODE_HOME`, `NODE_CURRENT`, variáveis `NPM_CONFIG_*` em XDG.
+*   **claude-code-envs.sh**: `CLAUDE_CONFIG_DIR` em XDG, validação de autenticação, aliases `c` e `cc`.
 
 ### 📁 Scripts de Validação de Diretórios (`-folders.sh`)
 
 Criam diretórios e validam o `$PATH` para ferramentas configuradas nos `-envs.sh`. Separados para garantir que as variáveis já estejam definidas:
 
-*   **2-uv-folders.sh**: Cria diretórios do uv, valida desabilitação dos shims do Python da Windows Store.
-*   **2-node-folders.sh**: Cria diretórios do Node.js/npm e adiciona ao `$PATH`.
+*   **uv-folders.sh**: Cria diretórios do uv, valida desabilitação dos shims do Python da Windows Store.
+*   **node-folders.sh**: Cria diretórios do Node.js/npm e adiciona ao `$PATH`.
 
 ### ⚡ Scripts de Funções (`-functions.sh`)
 
 Declaram funções complexas para automação. Atualmente:
 
-*   **0-bash-functions.sh**: Funções de exibição (`displayTitle`, `displayInfo`, `displaySuccess`, `displayFailure`, `displayWarning`), exportadas para sub-shells.
+*   **bash-functions.sh**: Funções de exibição (`displayTitle`, `displayInfo`, `displaySuccess`, `displayFailure`, `displayWarning`), exportadas para sub-shells.
 
 > [!TIP]
-> Para cada script `-envs.sh` você pode criar o correspondente `-functions.sh` (mesmo prefixo) com helpers da ferramenta.
+> Para cada script `-envs.sh` você pode criar o correspondente `-functions.sh` com helpers da ferramenta.
 
 ### 🔧 Scripts auxiliares e infraestrutura
 
-*   **7-node-extra-certs.sh**: Renova certificado raiz CA (cache de 7 dias via `find -mtime`), exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
-*   **8-bash-junctions.sh**: Resolve `HOME`, garante `~/.local/bin` no PATH (para binários Windows-installed como `claude.exe`), cria junctions em `%USERPROFILE%` para `.aws`, `.cache`, `.certs`, `.claude`, `.config`, `.local`, `.ssh`.
-*   **9-extras.sh**: Desabilita telemetria de CLIs de nuvem.
+*   **node-extra-certs.sh**: Renova certificado raiz CA (cache de 7 dias via `find -mtime`), exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
+*   **bash-junctions.sh**: Resolve `HOME`, garante `~/.local/bin` no PATH (para binários Windows-installed como `claude.exe`), cria junctions em `%USERPROFILE%` para `.aws`, `.cache`, `.certs`, `.claude`, `.config`, `.local`, `.ssh`.
+*   **extras.sh**: Desabilita telemetria de CLIs de nuvem.
 
 ### ⌨️ Scripts de Aliases (`-aliases.sh`)
 

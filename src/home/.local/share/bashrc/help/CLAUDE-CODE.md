@@ -32,7 +32,7 @@ O **Claude Code** busca configurações em camadas. Quando a mesma variável est
 | Nível | Escopo | Onde fica |
 |:---:|---|---|
 | **1** | Linha de comando | `claude --model claude-sonnet-4-6` |
-| **2** | Shell (sessão) | `export` / `1-claude-code-envs.sh` |
+| **2** | Shell (sessão) | `export` / `claude-code-envs.sh` |
 | **3** | Projeto — pessoal | `PROJETO/.claude/settings.local.json` |
 | **4** | Projeto — equipe | `PROJETO/.claude/settings.json` |
 | **5** | Usuário (global) | `$HOME/.config/claude/settings.json` *(padrão XDG)* |
@@ -61,7 +61,7 @@ Caso prefira usar um provedor diferente — como Amazon Bedrock, Google Vertex A
 
 O binário nativo do **Claude Code** integra automaticamente a loja de certificados do sistema operacional. Na maioria dos ambientes corporativos com proxy SSL, isso é suficiente — **sem necessidade de configuração adicional**.
 
-A variável `NODE_EXTRA_CA_CERTS` é necessária apenas quando o Claude Code foi instalado via `npm` (método legado) **ou** quando o proxy corporativo usa uma CA raiz não presente na loja do Windows. O script `7-node-extra-certs.sh` do **Bash RC for Devs** baixa e mantém o certificado raiz negociado com `google.com:443`, com cache de 7 dias (renova apenas se o arquivo não existir ou tiver mais de 7 dias) e exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
+A variável `NODE_EXTRA_CA_CERTS` é necessária apenas quando o Claude Code foi instalado via `npm` (método legado) **ou** quando o proxy corporativo usa uma CA raiz não presente na loja do Windows. O script `node-extra-certs.sh` do **Bash RC for Devs** baixa e mantém o certificado raiz negociado com `google.com:443`, com cache de 7 dias (renova apenas se o arquivo não existir ou tiver mais de 7 dias) e exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
 
 > **Para assinantes Claude Pro sem proxy corporativo:**<br> Você provavelmente não precisa configurar `NODE_EXTRA_CA_CERTS`.
 
@@ -85,7 +85,7 @@ Abra a aplicação do Windows **"Editar as variáveis de ambiente para sua conta
 |---|---|
 | `CLAUDE_CONFIG_DIR` | `C:\Users\%USERNAME%\.config\claude` |
 
-> **Por que o Bash RC for Devs exige a definição dessa variável?**<br> O Claude Code lê `CLAUDE_CONFIG_DIR` **antes** de abrir qualquer arquivo de configuração, então ela precisa estar disponível no nível do sistema operacional. Dentro do Git Bash, o `1-claude-code-envs.sh` também define essa variável como fallback (`$XDG_CONFIG_HOME/claude`) caso ela não venha do Windows.
+> **Por que o Bash RC for Devs exige a definição dessa variável?**<br> O Claude Code lê `CLAUDE_CONFIG_DIR` **antes** de abrir qualquer arquivo de configuração, então ela precisa estar disponível no nível do sistema operacional. Dentro do Git Bash, o `claude-code-envs.sh` também define essa variável como fallback (`$XDG_CONFIG_HOME/claude`) caso ela não venha do Windows.
 
 ### 2.2 Definir `CLAUDE_CODE_GIT_BASH_PATH` (obrigatório)
 
@@ -230,7 +230,7 @@ O resultado deve ser `v18.0.0` ou superior (ex.: `v22.13.0`).
 
 Se você trabalha em ambiente corporativo com **proxy de inspeção SSL** e está recebendo erros de SSL ao usar o Claude Code, siga estas etapas:
 
-Abra um Git Bash. O script `7-node-extra-certs.sh` do **Bash RC for Devs** baixa automaticamente o certificado raiz (com cache de 7 dias — renova apenas se o arquivo não existir ou tiver mais de 7 dias). Para verificar se o arquivo foi criado:
+Abra um Git Bash. O script `node-extra-certs.sh` do **Bash RC for Devs** baixa automaticamente o certificado raiz (com cache de 7 dias — renova apenas se o arquivo não existir ou tiver mais de 7 dias). Para verificar se o arquivo foi criado:
 ```bash
 ls -la "$HOME/.config/certs/ca_root.pem"
 openssl x509 -in "$HOME/.config/certs/ca_root.pem" -noout -subject -issuer

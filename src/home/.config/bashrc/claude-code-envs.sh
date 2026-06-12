@@ -1,5 +1,5 @@
 #
-# Script: ~/.config/bashrc/1-claude-code-envs.sh
+# Script: ~/.config/bashrc/claude-code-envs.sh
 # Valida variáveis de ambiente e configura aliases para uso do Claude Code.
 # ==========================================================================================
 
@@ -79,5 +79,5 @@ fi
 unset -f _claude_validate_required_config
 
 #-------------------------------------------------------------------------------------------
-#--- Final do script 1-claude-code-envs.sh
+#--- Final do script claude-code-envs.sh
 #-------------------------------------------------------------------------------------------
