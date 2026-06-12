@@ -12,7 +12,7 @@ O diretório `src/home/` espelha a estrutura alvo `~/` — os arquivos aqui são
 
 ```
 src/home/
-├── .config/bashrc/            # Scripts de inicialização (executados em ordem alfabética pelo ~/.bashrc)
+├── .config/bashrc/            # Scripts de inicialização sourced pelo ~/.bashrc (ordem detalhada abaixo)
 │   ├── templates/             # Templates de configuração (uv, ruff, Claude, VS Code)
 │   │   ├── claude/            # Templates de settings.json do Claude Code
 │   │   ├── vscode/            # Templates de settings.json do VS Code
@@ -23,7 +23,7 @@ src/home/
 └── .local/share/bashrc/help/  # Documentação e arquivos de ajuda do usuário
 ```
 
-> **Sobre `~/bin` vs `~/.local/bin`:**<br> Os scripts deste projeto ficam em `~/bin/` porque o Git Bash já adiciona esse diretório ao PATH automaticamente — não precisamos gerenciar PATH para nossos scripts. O `~/.local/bin/` continua relevante para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code), e o `bash-junctions.sh` garante que esse caminho esteja no PATH.
+> **Sobre `~/bin` vs `~/.local/bin`:** <li>Os scripts deste projeto ficam em `~/bin/` porque o Git Bash já adiciona esse diretório ao PATH automaticamente — não precisamos gerenciar PATH para nossos scripts. <li>O `~/.local/bin/` continua relevante para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code), e o `bash-junctions.sh` garante que esse caminho esteja no PATH.
 
 ## Arquitetura de Carregamento dos Scripts
 
@@ -79,7 +79,7 @@ Tipos: `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build`, `cho
 | `Mudança:` | O que foi feito? |
 | `Impacto:` | O que isso afeta? (breaking change, migração, efeitos colaterais, follow-ups) |
 
-**Rodapé** (opcional): `BREAKING CHANGE: ...`, referências (`Refs #123`), `Co-Authored-By:`.
+**Rodapé** (opcional): `BREAKING CHANGE: ...`, referências (`Refs #123`).
 
 > Regra de ouro: **use só o que agrega.** Commit trivial pode ser só o cabeçalho — não force as três seções.
 
