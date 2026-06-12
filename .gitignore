@@ -36,6 +36,9 @@ pids
 .vscode/
 *.code-workspace
 
+# Claude Code (configurações pessoais/locais do projeto)
+.claude/settings.local.json
+
 # Windows system files
 Thumbs.db
 Thumbs.db:encryptable

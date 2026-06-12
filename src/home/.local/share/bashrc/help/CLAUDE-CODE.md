@@ -16,6 +16,7 @@ O **Claude Code** pode ser usado com diferentes provedores de LLM:
 - **Anthropic (direta):** requer assinatura de um plano pago (Pro, Max, Team ou Enterprise) ou uma API Key do Console da Anthropic.
 - **Amazon Bedrock:** autenticação via credenciais AWS (não usa `ANTHROPIC_API_KEY`).
 - **Google Cloud Vertex AI:** autenticação via credenciais GCP (não usa `ANTHROPIC_API_KEY`).
+- **Azure Foundry (Microsoft Foundry):** autenticação via API Key do Azure ou Entra ID (não usa `ANTHROPIC_API_KEY`).
 - **AI Gateway (ex.: LiteLLM):** autenticação via token do Gateway (variável `ANTHROPIC_AUTH_TOKEN`).
 
 > **Sobre modelos de outros provedores:**<br> O **Claude Code** foi projetado especificamente para trabalhar com modelos Claude. Embora tecnicamente seja possível apontar um gateway (como LiteLLM) para modelos de outros fabricantes (ex.: `gemini-2.5-pro`), isso **não é suportado oficialmente** pela Anthropic. Funcionalidades como ferramentas agênticas, prompt caching e alguns comandos internos dependem de comportamentos específicos dos modelos Claude e podem apresentar erros imprevisíveis com outros modelos. Recomenda-se fortemente usar apenas modelos Claude.
@@ -53,7 +54,7 @@ Caso prefira usar um provedor diferente — como Amazon Bedrock, Google Vertex A
 | **AI Gateway** | `ANTHROPIC_AUTH_TOKEN` | API Key do seu Gateway | Definida pelo seu Gateway | Consumo de tokens via Gateway (LiteLLM, TrueFoundry, Portkey, etc) |
 | **Amazon Bedrock** | `CLAUDE_CODE_USE_BEDROCK=1` | Credenciais AWS (AWS_...) | console.aws.amazon.com | Consumo de Tokens via AWS Billing |
 | **Google Vertex AI** | `CLAUDE_CODE_USE_VERTEX=1` | Credenciais GCP (GCLOUD_... ou ADC) | console.cloud.google.com | Consumo de Tokens via GCP Billing |
-| **Azure Foundry** | `CLAUDE_CODE_USE_FOUNDRY=1` | API Key / Entra ID | Consumo de Tokens via Azure Billing |
+| **Azure Foundry** | `CLAUDE_CODE_USE_FOUNDRY=1` | API Key / Entra ID | ai.azure.com | Consumo de Tokens via Azure Billing |
 
 > **Regra importante:**<br> Quando `ANTHROPIC_API_KEY` está definida, o Claude Code **desabilita** o fluxo OAuth (login via browser com sua conta `claude.ai`). Se você assina o plano Pro/Max e quer usar a sua assinatura (sem API Key separada), **não defina** `ANTHROPIC_API_KEY` — deixe o Claude Code fazer o login com OAuth via browser.
 
@@ -106,13 +107,19 @@ Mesmo se você resolveu instalar o Git for Windows em um diretório diferente do
 D:\%USERNAME%\Apps\Git\bin\bash.exe
 ```
 
-Abra **"Editar as variáveis de ambiente para sua conta"** e adicione:
+O **Bash RC for Devs** espera essa variável no bloco `"env"` do `settings.json` global (criado na seção 2.3), e **não** nas variáveis de ambiente do Windows. Adicione a entrada usando o caminho retornado por `where bash`:
 
-| Nome | Valor |
-|---|---|
-| `CLAUDE_CODE_GIT_BASH_PATH` | `D:\%USERNAME%\Apps\Git\bin\bash.exe` |
+```json
+{
+  "env": {
+    "CLAUDE_CODE_GIT_BASH_PATH": "D:\\%USERNAME%\\Apps\\Git\\bin\\bash.exe"
+  }
+}
+```
 
-> **Atenção:**<br> Use o caminho real retornado pelo `where bash`, que pode diferir dependendo de como o Git for Windows foi instalado.
+> **Atenção:**<br> Use o caminho real retornado pelo `where bash`, que pode diferir dependendo de como o Git for Windows foi instalado. No JSON, escape as barras invertidas (`\\`).
+
+> **Validação:**<br> O script `claude-code-envs.sh` confere essa chave em ordem de prioridade — primeiro a variável de ambiente, depois o `settings.json`. Se você optar conscientemente por defini-la nas variáveis de ambiente do Windows, também é aceito; não estando em nenhum dos dois, o script emite um `displayFailure` apontando para o `settings.json`.
 
 ### 2.3 Criar o diretório e o `settings.json` global (Nível 5)
 
@@ -215,6 +222,28 @@ Para quem acessa Claude via GCP Vertex AI:
 
 > **Nota:**<br> O login interativo via `claude` também funciona (requer Claude Code v2.1.98+) — selecione "3rd-party platform" → "Google Vertex AI". Consulte [code.claude.com/docs/pt/google-vertex-ai](https://code.claude.com/docs/pt/google-vertex-ai) para configuração completa de IAM e modelos.
 
+#### Template F — Azure Foundry (Microsoft Foundry)
+
+Para quem acessa Claude via Azure / Microsoft Foundry. A autenticação usa a API Key do recurso Azure **ou** Entra ID (via `az login` / cadeia de credenciais padrão do Azure SDK):
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_USE_FOUNDRY": "1",
+    "ANTHROPIC_FOUNDRY_RESOURCE": "seu-recurso-foundry",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-8",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5",
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"
+  }
+}
+```
+
+> **Autenticação:**<br> Defina `ANTHROPIC_FOUNDRY_API_KEY` (chave do recurso, em **Endpoints and keys** no portal Foundry) para usar API Key. Se essa variável **não** estiver definida, o Claude Code usa automaticamente o Entra ID via cadeia de credenciais do Azure SDK (em ambiente local, normalmente `az login`). Alternativamente a `ANTHROPIC_FOUNDRY_RESOURCE`, é possível informar a URL completa em `ANTHROPIC_FOUNDRY_BASE_URL`.
+
+> **Atenção — sem wizard e sem checagem de modelo:**<br> Diferente de Bedrock e Vertex, o Foundry **não tem assistente interativo** nem verificação de modelo no startup. **Fixe as versões dos modelos** (`ANTHROPIC_DEFAULT_*_MODEL`) com os nomes exatos dos seus *deployments* no Azure — sem isso, os aliases (`opus`, `sonnet`) resolvem para o padrão interno do Foundry, que pode não existir na sua conta e fazer as requisições falharem. Consulte [code.claude.com/docs/en/microsoft-foundry](https://code.claude.com/docs/en/microsoft-foundry).
+
 ### 2.5 Confirmar instalação do Node.js (apenas para método npm legado)
 
 > **Se você vai usar o instalador nativo (recomendado pela Anthropic desde 2026), o Node.js não é necessário.** Esta etapa é obrigatória apenas se optar pelo método `npm install -g`.
@@ -282,6 +311,8 @@ O próximo passo depende do seu provedor:
 **AI Gateway / LiteLLM:** se `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_BASE_URL` estão definidos, nenhum login interativo é necessário.
 
 **Bedrock / Vertex AI:** execute `claude`, selecione "3rd-party platform" e siga o assistente, **ou** configure as variáveis de ambiente conforme os templates D e E.
+
+**Azure Foundry:** **não há** assistente interativo — configure as variáveis de ambiente conforme o template F. O Claude Code lê `CLAUDE_CODE_USE_FOUNDRY` e as demais variáveis do `settings.json`/ambiente e conecta ao recurso Azure no primeiro prompt.
 
 ### 3.3 Validar a configuração
 
@@ -401,6 +432,10 @@ Abra "Editar as variáveis de ambiente para sua conta" e remova:
 | `ANTHROPIC_VERTEX_PROJECT_ID` | ID do projeto GCP para Vertex AI |
 | `CLOUD_ML_REGION` | Região GCP para Vertex AI |
 | `AWS_REGION` | Região AWS para Bedrock |
+| `CLAUDE_CODE_USE_FOUNDRY` | Habilitar integração com Azure Foundry (`1`) |
+| `ANTHROPIC_FOUNDRY_API_KEY` | API Key do recurso Azure Foundry (se ausente, usa Entra ID) |
+| `ANTHROPIC_FOUNDRY_RESOURCE` | Nome do recurso Azure Foundry |
+| `ANTHROPIC_FOUNDRY_BASE_URL` | URL base completa do recurso (alternativa ao nome do recurso) |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | Sobrescrever o modelo Sonnet padrão |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | Sobrescrever o modelo Haiku padrão |
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | Sobrescrever o modelo Opus padrão (útil para redirecionar para Sonnet) |
