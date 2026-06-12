@@ -4,10 +4,6 @@
 # Define variáveis e carrega os scripts rc.
 # =============================================================================
 
-# Configurações de locale
-export LANG=pt_BR.UTF-8
-export LC_ALL=pt_BR.UTF-8
-
 # Mapeia variáveis de ambiente com diretórios XDG normalizadas com "cygpath -u" para array "_xdg"
 mapfile -t _xdg < <(cygpath -u \
     "${XDG_CACHE_HOME:-$HOME/.cache}" \
@@ -29,11 +25,11 @@ if [ ! -d "$XDG_CACHE_HOME" ] || [ ! -d "$XDG_CONFIG_HOME" ] || \
     mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"
 fi
 
-# Carrega primeiro os scripts que contêm definições que serão usadas pelos demais scripts rc
+# Carrega primeiro os scripts com definições usadas pelos demais scripts rc
 source "$XDG_CONFIG_HOME/bashrc/bash-envs.sh"
 source "$XDG_CONFIG_HOME/bashrc/bash-functions.sh"
 
-# Carrega (source) dos demais scripts rc (ordem alfabética), pulando os carregados explicitamente
+# Carrega os demais scripts rc *ordem alfabética), pulando os que são carregados explicitamente
 for rc in "$XDG_CONFIG_HOME"/bashrc/*.sh; do
     case "$rc" in
         */bash-envs.sh | */bash-functions.sh | */bash-junctions.sh) continue ;;
@@ -41,7 +37,7 @@ for rc in "$XDG_CONFIG_HOME"/bashrc/*.sh; do
     source "$rc"
 done
 
-# Carrega por último: junctions dependem de variáveis e diretórios definidos pelos demais scripts rc
+# Carrega por último o que depender de definições feitas pelos scripts anteriores
 source "$XDG_CONFIG_HOME/bashrc/bash-junctions.sh"
 
 # Limpa variáveis do escopo global
