@@ -9,29 +9,29 @@ Essa convenção é popular porque cria um padrão consistente entre diferentes 
 ## Diretórios locais - apenas para o usuário corrente
 
 1. **XDG_CONFIG_HOME**: `$HOME/.config`
-  * Contém apenas arquivos pequenos de preferências (arquivos .toml, .json, etc) e scripts de inicialização.  
+  * Contém apenas arquivos pequenos de preferências (arquivos .toml, .json, etc) e scripts de inicialização.
   * Backup obrigatório, oferecendo fácil sincronização e portabilidade entre diferentes computadores.
   * Exemplos:
     * `$HOME/.config/bashrc`: para armazenar os shell scripts e arquivos de configuração do projeto BashRC for Devs.
 
-1. **XDG_DATA_HOME**: 
+2. **XDG_DATA_HOME**: `$HOME/.local/share`
   * Contém dados criados pelas aplicações por você ou para você, os quais devem ser agnósticos em relação ao hardware ou ao sistema operacional específico.
   * Backup recomendado.
   * Exemplos:
     * `$HOME/.local/share/templates`: para modelos de documentos e modelos de arquivos.
-    * `$HOME/.local/share/qual???`: para bancos de dados locais locais (como o arquivo do seu gerenciador de senhas KeePass, suas notas de texto plano ou listas de tarefas).
-    * `$HOME$/.local/share/fonts`: para fontes personalizadas instaladas pelo usuário.
-    * `$HOME$/.local/share/applications`: para talhos do menu de aplicativos, que funcionam perfeitamente em outras máquinas desde que os mesmos programas estejam instalados.
+    * `$HOME/.local/share/keepass`: para bancos de dados locais (como o arquivo do seu gerenciador de senhas KeePass, suas notas de texto plano ou listas de tarefas).
+    * `$HOME/.local/share/fonts`: para fontes personalizadas instaladas pelo usuário.
+    * `$HOME/.local/share/applications`: para atalhos do menu de aplicativos, que funcionam perfeitamente em outras máquinas desde que os mesmos programas estejam instalados.
 
 3. **XDG_STATE_HOME**: `$HOME/.local/state`
-  * Contém dados de estado que devem persistir entre as reinicializações dos aplicativos, mas que não são importantes ou portáveis o suficiente para serem armazenados em $XDG_DATA_HOME.
-  * Backup dispensável (estado volátil). perder esses arquivos causa apenas pequenos inconvenientes estéticos, mas nenhuma perda de dados estruturais.
+  * Contém dados de estado que devem persistir entre as reinicializações dos aplicativos, mas que não são importantes ou portáveis o suficiente para serem armazenados em `$XDG_DATA_HOME`.
+  * Backup dispensável (estado volátil); perder esses arquivos causa apenas pequenos inconvenientes estéticos, mas nenhuma perda de dados estruturais.
   * Exemplos:
-    * `$HOME/.local/state/vlc` armazena o histórico de arquivos recentemente abertos e logs do player.
+    * `$HOME/.local/state/vlc`: armazena o histórico de arquivos recentemente abertos e logs do player.
 
-4. **XDG_CACHE_HOME**
+4. **XDG_CACHE_HOME**: `$HOME/.cache`
   * Diretório para armazenar dados não essenciais ou temporários (cache) do usuário.
-  * Exemplos
+  * Exemplos:
     * `$HOME/.cache/thumbnails`: para armazenar miniaturas de imagens geradas pelo gerenciador de arquivos.
 
 

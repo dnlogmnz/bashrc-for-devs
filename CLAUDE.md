@@ -1,86 +1,69 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar com o código deste repositório.
 
-## Project Purpose
+## Propósito do Projeto
 
-Modular Bash configuration framework for Windows developers using Git Bash. Scripts are organized following the **XDG Base Directory Specification** and **FHS** to keep `$HOME` clean. The `src/home/` directory mirrors the target `~/` structure — files here are meant to be copied to the user's home directory.
+Framework modular de configuração Bash para desenvolvedores Windows que usam Git Bash.
+Os scripts são organizados seguindo a **XDG Base Directory Specification** e o **FHS** para manter o `$HOME` limpo.
+O diretório `src/home/` espelha a estrutura alvo `~/` — os arquivos aqui são destinados a serem copiados para o diretório home do usuário.
 
-## Repository Structure
+## Estrutura do Repositório
 
 ```
 src/home/
-├── .config/bashrc/        # Scripts de inicialização (executados em ordem alfabética pelo ~/.bashrc)
-│   ├── utils/             # Scripts de migração e utilitários
-│   ├── templates/         # Templates de configuração (uv, ruff, Claude, VS Code)
-│   └── *.sh               # Scripts numerados por prefixo de dependência
-├── .local/bin/bashrc/     # Scripts executáveis e helpers para gerenciamento de ferramentas
+├── .config/bashrc/            # Scripts de inicialização (executados em ordem alfabética pelo ~/.bashrc)
+│   ├── templates/             # Templates de configuração (uv, ruff, Claude, VS Code)
+│   │   ├── claude/            # Templates de settings.json do Claude Code
+│   │   ├── vscode/            # Templates de settings.json do VS Code
+│   │   └── *.example          # Templates de configuração (dot-env, uv, ruff, pyproject.toml, etc.)
+│   └── *.sh                   # Scripts numerados por prefixo de dependência
+├── bin/                       # Scripts executáveis do projeto (Git Bash adiciona ~/bin ao PATH automaticamente)
+│   └── helpers/               # Helpers sourced pelos scripts executáveis
 └── .local/share/bashrc/help/  # Documentação e arquivos de ajuda do usuário
-src/home/.config/bashrc/templates/
-├── claude/                # Templates de settings.json do Claude Code
-├── vscode/                # Templates de settings.json do VS Code
-└── *.example              # Templates de configuração (dot-env, uv, ruff, pyproject.toml, etc.)
 ```
 
-## Script Loading Architecture
+> **Sobre `~/bin` vs `~/.local/bin`:**<br> Os scripts deste projeto ficam em `~/bin/` porque o Git Bash já adiciona esse diretório ao PATH automaticamente — não precisamos gerenciar PATH para nossos scripts. O `~/.local/bin/` continua relevante para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code), e o `8-bash-junctions.sh` garante que esse caminho esteja no PATH.
 
-`~/.bashrc` sources all `~/.config/bashrc/*.sh` files in alphabetical order. The numeric prefix determines load order and encodes dependencies:
+## Arquitetura de Carregamento dos Scripts
 
-| Prefix | Responsibility |
-|--------|----------------|
-| `00-*` | Core Bash (env vars, display functions, Windows junctions) |
-| `11-*` | Git CLI |
-| `21-23-*` | Python (uv), Node.js runtimes |
-| `31-*` | Claude Code |
-| `99-*` | Extras (telemetry opt-outs) |
+O `~/.bashrc` carrega todos os arquivos `~/.config/bashrc/*.sh` em ordem alfabética.
+O prefixo numérico determina a ordem de carregamento e codifica as dependências:
 
-Scripts use three naming suffixes:
-- `-envs.sh` — sets environment variables and PATH entries
-- `-functions.sh` — declares shell functions
-- `-aliases.sh` — declares aliases
+| Prefixo | Responsabilidade |
+|---------|------------------|
+| `0`     | Core Bash (variáveis de ambiente, funções de exibição) |
+| `1`     | Ferramentas — definição de variáveis e PATH (Git, Python, uv, Node.js, Claude Code) |
+| `2`     | Ferramentas — criação de diretórios e validações pós-`envs` (uv, Node.js) |
+| `7`     | Certificados (`NODE_EXTRA_CA_CERTS` para ambiente corporativo) |
+| `8`     | Junctions do Windows (`USERPROFILE` → `HOME`) |
+| `9`     | Extras (opt-outs de telemetria) |
 
-`-envs.sh` scripts run before their corresponding `-functions.sh` because of alphabetical ordering.
+Os scripts utilizam os seguintes sufixos de nomenclatura:
+- `-envs.sh` — define variáveis de ambiente e entradas no PATH
+- `-folders.sh` — cria/valida diretórios e PATH dependentes das variáveis definidas em `-envs.sh`
+- `-functions.sh` — declara funções shell (reservado; nenhum script atual usa este sufixo além de `0-bash-functions.sh`)
+- `-aliases.sh` — declara aliases (reservado; aliases atuais estão dentro de `-envs.sh`)
 
-## Display Functions (from `00-bash-functions.sh`)
+## Restrições de Design
 
-All scripts use these ANSI-colored output helpers (exported to subshells):
+- **Conformidade com XDG**.
+- **Alvo Windows/Git Bash**: usar formato de caminho Unix (`/c/Users/...`, não `C:\Users\...`).
+- **USERPROFILE tem junctions para HOME**: a lógica específica do Windows usa `mklink /J` para junctions em `8-bash-junctions.sh`.
+- **Escopo global limpo**: remover funções auxiliares após o uso (`unset -f func_name`); remover variáveis de loop (`unset rc`).
+- **Degradação graciosa**: falhas de validação emitem `displayWarning`/`displayFailure` em vez de abortar a sessão do shell.
+- **Sem sistema de build**: não há Makefile, package.json ou test runner.
+- **Custo de inicialização**: os scripts são executados em todo shell novo; evitar forks no caminho estável (usar built-ins, parameter expansion `${var%/*}`, guardas `[ -d ] ||` antes de `mkdir -p`).
 
-```bash
-displayTitle   "text"           # Cyan background header
-displayAction  "text"           # Cyan text
-displayScript  "text"           # Yellow text
-displayInfo    "label" "value"  # Plain aligned key-value
-displaySuccess "label" "msg"    # Bold green
-displayFailure "label" "msg"    # Bold red
-displayWarning "label" "msg"    # Bold yellow
-```
+## Adicionando Suporte a Nova Ferramenta
 
-Always use these functions for user-facing output — never raw `echo`.
+Para adicionar uma nova ferramenta (ex.: `terraform`):
+1. Crie `src/home/.config/bashrc/1-tool-envs.sh` para definir variáveis de ambiente e entradas no PATH.
+2. Se a ferramenta precisar de diretórios criados ou validações que dependem das variáveis, crie `src/home/.config/bashrc/2-tool-folders.sh`.
+3. Opcionalmente crie `src/home/.config/bashrc/1-tool-functions.sh` para helpers complexos.
+4. As funções de `0-bash-functions.sh` estão disponíveis — não é necessário reimportá-las.
+5. Siga o padrão: validar se os caminhos existem, adicionar ao `$PATH`, emitir `displayFailure` se variáveis obrigatórias estiverem ausentes.
 
-## Key Design Constraints
+## Idioma
 
-- **Windows/Git Bash target**: Use Unix path format (`/c/Users/...`, not `C:\Users\...`). Windows-specific logic uses `mklink` for junctions in `00-bash-junctions.sh`.
-- **XDG compliance**: Config → `$XDG_CONFIG_HOME` (`~/.config`), data → `$XDG_DATA_HOME` (`~/.local/share`), state → `$XDG_STATE_HOME` (`~/.local/state`), cache → `$XDG_CACHE_HOME` (`~/.cache`).
-- **Clean global scope**: Unset helper functions after use (`unset -f func_name`); unset loop variables (`unset rc`).
-- **Graceful degradation**: Validation failures emit `displayWarning`/`displayFailure` rather than aborting the shell session.
-- **No build system**: There is no Makefile, package.json, or test runner. Validation is manual via `claude doctor` and by inspecting shell startup output.
-
-## Adding New Tool Support
-
-To add a new tool (e.g., `terraform`):
-1. Crie `src/home/.config/bashrc/XX-tool-envs.sh` (numerado para carregar após dependências).
-2. Opcionalmente crie `src/home/.config/bashrc/XX-tool-functions.sh` para helpers complexos.
-3. Source `00-bash-functions.sh` functions are available — no need to re-import them.
-4. Follow the pattern: validate paths exist, add to `$PATH`, emit `displayFailure` if required vars are missing.
-
-## Claude Code Integration (`31-claude-code-envs.sh`)
-
-- Sets `CLAUDE_CODE_DIR` to `$XDG_CONFIG_HOME/claude` (overrides the default `~/.claude`).
-- Auto-discovers `bash.exe` in common Windows locations for `CLAUDE_CODE_GIT_BASH_PATH`.
-- Defines aliases: `c` → `claude`, `cc` → `claude --continue`.
-- Validation can be suppressed with `CLAUDE_SKIP_VALIDATION=1` for scripting/automation.
-- Looks for `$CLAUDE_CODE_DIR/settings.json` and `$CLAUDE_CODE_DIR/.credentials.json`.
-
-## Language
-
-README.md and inline script comments are in **Portuguese (pt-BR)**. Commit messages follow Portuguese too (see git log). Code identifiers, function names, and variable names are in English.
+O `README.md` e os comentários inline dos scripts estão em **português (pt-BR)**. As mensagens de commit seguem o mesmo idioma (ver git log). Identificadores de código, nomes de funções e variáveis estão em inglês.

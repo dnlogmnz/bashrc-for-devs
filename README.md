@@ -49,7 +49,7 @@ Neste repositório, focamos na organização do seu ambiente Bash dentro dos dir
 
 1.  **Ponto de Entrada**: O Bash utiliza arquivos na raiz do `$HOME` para iniciar a sessão. Este projeto recomenda centralizar a lógica de carregamento no `~/.bashrc`, garantindo que tanto *interactive shells* quanto *login shells* (através do `~/.bash_profile` ou `~/.profile`) carreguem as configurações modulares.
 2.  **Configurações**: Todos os scripts de inicialização, aliases e funções serão armazenados de forma organizada em `~/.config/bashrc/`.
-3.  **Executáveis**: Scripts utilitários e wrappers (como os do `uv`) devem residir em `~/.local/bin/`, que é adicionado ao seu `$PATH`.
+3.  **Executáveis**: Scripts utilitários e wrappers (como os do `uv`) deste projeto residem em `~/bin/`, que o Git Bash adiciona ao seu `$PATH` automaticamente (convenção `/etc/profile`). O `~/.local/bin/` segue válido para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code) e é mantido no PATH pelo `8-bash-junctions.sh`.
 4.  **Ambiente**: Variáveis de ambiente são definidas nos scripts `envs` para redirecionar ferramentas (como Terraform e Python) a usarem `~/.local/share` e `~/.local/state`, mantendo o raiz de seu diretório pessoal sempre limpo.
 
 > **Nota sobre arquivos de inicialização**:
@@ -67,34 +67,56 @@ Neste repositório, focamos na organização do seu ambiente Bash dentro dos dir
 Este projeto mantém os scripts em `src/home/.config/bashrc/`. A numeração dos arquivos garante que as dependências sejam carregadas na ordem correta (ex: carregar variáveis de ambiente antes de funções que dependem delas).
 
 
-### 🛠️ Scripts de Configuração de Ambiente (`envs`)
+### 🔢 Ordem de Carregamento por Prefixo
 
-Os scripts terminados em `-envs.sh` configuram variáveis de sistema, caminhos de cache e ajustes de binários. Exemplos:
+O `~/.bashrc` carrega `~/.config/bashrc/*.sh` em ordem alfabética. O prefixo numérico de cada script codifica suas dependências:
 
-*   **00-bash-envs.sh**: Variáveis básicas do Bash e ajuste inicial do `$PATH`.
-*   **12-terraform-envs.sh**: Configurações para Terraform/OpenTofu (cache de plugins e diretórios).
-*   **23-gemini-cli-envs.sh**: Variáveis para o Google Gemini CLI, incluindo autenticação e modelos.
-*   **41-uv-envs.sh**: Configurações para o gerenciador de pacotes Python `uv`.
+| Prefixo | Responsabilidade |
+|---|---|
+| `0` | Core Bash — variáveis básicas e funções de exibição (`displayFailure`, `displayWarning`, etc.) |
+| `1` | Ferramentas — variáveis de ambiente e PATH (Git, Python, uv, Node.js, Claude Code) |
+| `2` | Ferramentas — criação/validação de diretórios dependentes de `1-*-envs.sh` |
+| `7` | Certificados — `NODE_EXTRA_CA_CERTS` para ambientes com proxy SSL corporativo |
+| `8` | Junctions do Windows — `USERPROFILE` → `HOME` via `mklink /J` |
+| `9` | Extras — opt-outs de telemetria (AWS, Azure, GCP) |
 
+### 🛠️ Scripts de Configuração de Ambiente (`-envs.sh`)
 
-### ⚡ Scripts de Funções (`functions`)
+Definem variáveis de ambiente, ajustam `$PATH` e (quando faz sentido) declaram aliases curtos. Scripts atuais:
 
-Os scripts terminados em `-functions.sh` declaram funções complexas para automação de tarefas.
+*   **0-bash-envs.sh**: Histórico do Bash, configurações de `less`/`vim` em XDG, aliases (`ll`, `la`, `grep`, `npp`).
+*   **1-git-envs.sh**: `GIT_CONFIG_GLOBAL` aderente ao XDG, aliases de log.
+*   **1-python-envs.sh**: `PYTHONHISTORY`, `PYTHONUNBUFFERED`, `PYTHONIOENCODING`, `PYTHONDONTWRITEBYTECODE`.
+*   **1-uv-envs.sh**: Diretórios e configurações do `uv` (cache, tools, registry, link-mode).
+*   **1-node-envs.sh**: `NODE_HOME`, `NODE_CURRENT`, variáveis `NPM_CONFIG_*` em XDG.
+*   **1-claude-code-envs.sh**: `CLAUDE_CONFIG_DIR` em XDG, validação de autenticação, aliases `c` e `cc`.
 
-*   **00-bash-functions.sh**: Funções de exibição de mensagens e visualização de versões (DevSecOps stack).
-*   **11-git-functions.sh**: Utilitários para Git CLI, como `git-info` e `git-config`.
-*   **21-aws-functions.sh**: Facilita o uso do AWS CLI (`aws-info`, `aws-use`, `aws-setup`).
-*   **31-mongodb-functions.sh**: Interação com MongoDB Atlas CLI.
-*   **41-uv-functions.sh** & **42-python-functions.sh**: Gestão de projetos e ambientes Python gerenciados pelo `uv`.
+### 📁 Scripts de Validação de Diretórios (`-folders.sh`)
 
-> **[TIP]**: Para cada script terminado em `-envs.sh` você pode criar o correspondente script terminado em `-functions.sh`.
+Criam diretórios e validam o `$PATH` para ferramentas configuradas nos `-envs.sh`. Separados para garantir que as variáveis já estejam definidas:
 
+*   **2-uv-folders.sh**: Cria diretórios do uv, valida desabilitação dos shims do Python da Windows Store.
+*   **2-node-folders.sh**: Cria diretórios do Node.js/npm e adiciona ao `$PATH`.
 
-### ⌨️ Scripts de Aliases
+### ⚡ Scripts de Funções (`-functions.sh`)
 
-> **[TIP]**: você pode declarar nestes scripts todos os aliases que você está acostumado a criar para seu uso próprio. 
+Declaram funções complexas para automação. Atualmente:
 
-*   **14-docker-aliases.sh**: Atalhos úteis como `docker-clean`, `docker-stop-all` e logs rápidos.
+*   **0-bash-functions.sh**: Funções de exibição (`displayTitle`, `displayInfo`, `displaySuccess`, `displayFailure`, `displayWarning`), exportadas para sub-shells.
+
+> [!TIP]
+> Para cada script `-envs.sh` você pode criar o correspondente `-functions.sh` (mesmo prefixo) com helpers da ferramenta.
+
+### 🔧 Scripts auxiliares e infraestrutura
+
+*   **7-node-extra-certs.sh**: Renova certificado raiz CA (cache de 7 dias via `find -mtime`), exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
+*   **8-bash-junctions.sh**: Resolve `HOME`, garante `~/.local/bin` no PATH (para binários Windows-installed como `claude.exe`), cria junctions em `%USERPROFILE%` para `.aws`, `.cache`, `.certs`, `.claude`, `.config`, `.local`, `.ssh`.
+*   **9-extras.sh**: Desabilita telemetria de CLIs de nuvem.
+
+### ⌨️ Scripts de Aliases (`-aliases.sh`)
+
+> [!TIP]
+> Declare nestes scripts os aliases pessoais. Atualmente os poucos aliases existentes estão inline nos respectivos `-envs.sh` por simplicidade — separe em `-aliases.sh` quando o volume justificar.
 
 ---
 
@@ -104,8 +126,10 @@ Os scripts terminados em `-functions.sh` declaram funções complexas para autom
 No seu terminal, execute:
 ```bash
 mkdir -p ~/.config/bashrc/
-mkdir -p ~/.local/bin
+mkdir -p ~/bin/helpers
 ```
+
+> O Git Bash adiciona `~/bin` ao `$PATH` automaticamente (`/etc/profile`), então scripts colocados aí ficam disponíveis sem precisar gerenciar PATH.
 
 ### 2. Configurar o .bashrc Principal
 No seu `~/.bashrc` (ou `~/.bash_profile`) do seu Git Bash, adicione a lógica para carregar automaticamente os arquivos organizados:

@@ -32,13 +32,13 @@ O **Claude Code** busca configurações em camadas. Quando a mesma variável est
 | Nível | Escopo | Onde fica |
 |:---:|---|---|
 | **1** | Linha de comando | `claude --model claude-sonnet-4-6` |
-| **2** | Shell (sessão) | `export` / `31-claude-code-envs.sh` |
+| **2** | Shell (sessão) | `export` / `1-claude-code-envs.sh` |
 | **3** | Projeto — pessoal | `PROJETO/.claude/settings.local.json` |
 | **4** | Projeto — equipe | `PROJETO/.claude/settings.json` |
 | **5** | Usuário (global) | `$HOME/.config/claude/settings.json` *(padrão XDG)* |
 | **6** | Sistema (Windows) | "Editar variáveis de ambiente para sua conta" |
 
-> **Nota sobre XDG:**<br> O **Bash RC for Devs** adota o padrão de diretórios XDG, portanto o diretório global do Claude Code é `$HOME/.config/claude` (em vez do padrão `C:\Users\%USERNAME%\.claude` usado pela maioria das instalações sem XDG). Para wue você possa usar os shell scripts deste projeto, a variável `CLAUDE_CODE_DIR` **deve** ser definida apontando para esse diretório, conforme explicado na seção 2.1.
+> **Nota sobre XDG:**<br> O **Bash RC for Devs** adota o padrão de diretórios XDG, portanto o diretório global do Claude Code é `$HOME/.config/claude` (em vez do padrão `C:\Users\%USERNAME%\.claude` usado pela maioria das instalações sem XDG). Para que você possa usar os shell scripts deste projeto, a variável `CLAUDE_CONFIG_DIR` **deve** ser definida apontando para esse diretório, conforme explicado na seção 2.1.
 
 ### 1.2 Provedores e Modelos de Autenticação
 
@@ -61,7 +61,7 @@ Caso prefira usar um provedor diferente — como Amazon Bedrock, Google Vertex A
 
 O binário nativo do **Claude Code** integra automaticamente a loja de certificados do sistema operacional. Na maioria dos ambientes corporativos com proxy SSL, isso é suficiente — **sem necessidade de configuração adicional**.
 
-A variável `NODE_EXTRA_CA_CERTS` é necessária apenas quando o Claude Code foi instalado via `npm` (método legado) **ou** quando o proxy corporativo usa uma CA raiz não presente na loja do Windows. O script `31-claude-code-cert.sh` do **Bash RC for Devs** apresenta um aviso (configurável) se essa variável não estiver definida.
+A variável `NODE_EXTRA_CA_CERTS` é necessária apenas quando o Claude Code foi instalado via `npm` (método legado) **ou** quando o proxy corporativo usa uma CA raiz não presente na loja do Windows. O script `7-node-extra-certs.sh` do **Bash RC for Devs** baixa e mantém o certificado raiz negociado com `google.com:443`, com cache de 7 dias (renova apenas se o arquivo não existir ou tiver mais de 7 dias) e exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
 
 > **Para assinantes Claude Pro sem proxy corporativo:**<br> Você provavelmente não precisa configurar `NODE_EXTRA_CA_CERTS`.
 
@@ -71,21 +71,21 @@ A variável `NODE_EXTRA_CA_CERTS` é necessária apenas quando o Claude Code foi
 
 Execute os passos desta seção **na ordem indicada**, antes de instalar o Claude Code.
 
-### 2.1 Definir `CLAUDE_CODE_DIR`
+### 2.1 Definir `CLAUDE_CONFIG_DIR`
 
 O **Claude Code** armazena suas configurações em um arquivo chamado `settings.json`.
 
 Por padrão, esse arquivo fica em `C:\Users\%USERNAME%\.claude` — mas como o **Bash RC for Devs** adota a convenção XDG, o diretório passa a ser `C:\Users\%USERNAME%\.config\claude`.
 
-Como o **Claude Code** pode ser executado em diferentes ambientes — dentro do Git Bash ou como extensão do VS Code, por exemplo — é necessário informar explicitamente a todos eles onde encontrar esse diretório de configuração usando a variável `CLAUDE_CODE_DIR`.
+Como o **Claude Code** pode ser executado em diferentes ambientes — dentro do Git Bash ou como extensão do VS Code, por exemplo — é necessário informar explicitamente a todos eles onde encontrar esse diretório de configuração usando a variável `CLAUDE_CONFIG_DIR`.
 
 Abra a aplicação do Windows **"Editar as variáveis de ambiente para sua conta"** e, na parte superior (`Variáveis de ambiente para <SEU USUÁRIO>`), adicione uma nova variável de ambiente:
 
 | Nome | Valor|
 |---|---|
-| `CLAUDE_CODE_DIR` | `C:\Users\%USERNAME%\.config\claude` |
+| `CLAUDE_CONFIG_DIR` | `C:\Users\%USERNAME%\.config\claude` |
 
-> **Por que o Bash RC for Devs exige a definição dessa variável?**<br> O Claude Code lê `CLAUDE_CODE_DIR` **antes** de abrir qualquer arquivo de configuração, então ela precisa estar disponível no nível do sistema operacional.
+> **Por que o Bash RC for Devs exige a definição dessa variável?**<br> O Claude Code lê `CLAUDE_CONFIG_DIR` **antes** de abrir qualquer arquivo de configuração, então ela precisa estar disponível no nível do sistema operacional. Dentro do Git Bash, o `1-claude-code-envs.sh` também define essa variável como fallback (`$XDG_CONFIG_HOME/claude`) caso ela não venha do Windows.
 
 ### 2.2 Definir `CLAUDE_CODE_GIT_BASH_PATH` (obrigatório)
 
@@ -230,7 +230,7 @@ O resultado deve ser `v18.0.0` ou superior (ex.: `v22.13.0`).
 
 Se você trabalha em ambiente corporativo com **proxy de inspeção SSL** e está recebendo erros de SSL ao usar o Claude Code, siga estas etapas:
 
-Abra um Git Bash. O script `31-claude-code-cert.sh` do **Bash RC for Devs** baixa automaticamente o certificado raiz. Para verificar se o arquivo foi criado:
+Abra um Git Bash. O script `7-node-extra-certs.sh` do **Bash RC for Devs** baixa automaticamente o certificado raiz (com cache de 7 dias — renova apenas se o arquivo não existir ou tiver mais de 7 dias). Para verificar se o arquivo foi criado:
 ```bash
 ls -la "$HOME/.config/certs/ca_root.pem"
 openssl x509 -in "$HOME/.config/certs/ca_root.pem" -noout -subject -issuer
@@ -370,7 +370,7 @@ Vá à aba Extensões, selecione "Claude Code" e clique em "Uninstall". Em segui
 
 ### Variáveis de ambiente do Windows
 Abra "Editar as variáveis de ambiente para sua conta" e remova:
-- `CLAUDE_CODE_DIR`
+- `CLAUDE_CONFIG_DIR`
 - `CLAUDE_CODE_GIT_BASH_PATH`
 - `NODE_EXTRA_CA_CERTS` (se não for usada por outras ferramentas)
 
@@ -391,7 +391,7 @@ Abra "Editar as variáveis de ambiente para sua conta" e remova:
 
 | Variável | Finalidade |
 |---|---|
-| `CLAUDE_CODE_DIR` | Diretório de configuração global (obrigatório no padrão XDG) |
+| `CLAUDE_CONFIG_DIR` | Diretório de configuração global (obrigatório no padrão XDG) |
 | `CLAUDE_CODE_GIT_BASH_PATH` | Localização do `bash.exe` no Windows |
 | `ANTHROPIC_API_KEY` | Chave de API do Console da Anthropic |
 | `ANTHROPIC_AUTH_TOKEN` | Token de autenticação para AI Gateway / LiteLLM |

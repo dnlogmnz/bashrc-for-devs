@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Comando: uv-new-lib
+# Descrição: Cria uma biblioteca Python reutilizável com UV, preparada para distribuição (PyPI)
+# Uso: uv-new-lib <nome-do-projeto> [versao-python]
+# ==========================================================================================
+
+# Source das funções helper
+if [ -f "${HOME}/bin/helpers/uv-utils.sh" ]; then
+    source "${HOME}/bin/helpers/uv-utils.sh"
+fi
+
+_utils_validate_args "$@" || exit 1
+project_name="$1"
+python_version="${2:-$UV_PYTHON_MIN_VER}"
+
+displayAction "Iniciando Biblioteca Reutilizável: $project_name"
+
+# Inicializa como biblioteca
+uv init --lib --python "$python_version" "$project_name"
+cd "$project_name" || exit 1
+
+# Configura base (Modo package)
+_setup_common_env "$project_name" "$python_version" "package"
+
+echo ""
+displaySuccess "Concluído" "Biblioteca criada com estrutura src/!"
+
+#-------------------------------------------------------------------------------------------
+#--- Final do script uv-new-lib
+#-------------------------------------------------------------------------------------------

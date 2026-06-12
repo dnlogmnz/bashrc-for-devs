@@ -1,14 +1,15 @@
 # Instalação de Aplicativos e Utilitários DevSecOps
 
 ## Pressupostos
+
 As instalações de aplicativos no Windows 11 serão feitas com um usuário comum que:
 - não tem privilégios administrativos, nem capacidade de obter elevação de privilégios;
 - está proibido de usar o PowerShell, editores do Registry (tais como `reg.exe` e `regedit.exe`);
 - não pode baixar nada via Windows Store;
 - não pode usar winget e outros instaladores normalmente recomendados no Windows.
 
-Todas instalações pressupõe que as seguintes variáveis de ambiente foram adicionadas no "Editar variáveis de ambiente para sua conta":
-- `HOME` aponta para `D:\<USUÁRIO>`
+Todas as instalações pressupõem que as seguintes variáveis de ambiente foram adicionadas em "Editar variáveis de ambiente para sua conta":
+- `HOME` aponta para `D:\<USUÁRIO>\home`
 - `APPS_BASE` aponta para `D:\<USUÁRIO>\Apps`
 
 Os motivadores são os seguintes:
@@ -17,17 +18,20 @@ Os motivadores são os seguintes:
 
 ## Instalar o Python
 
+Use `uv` (veja a seção correspondente no `1-uv-envs.sh`). Não instale Python diretamente via python.org, winget ou Microsoft Store.
+
 ## Instalar o AWS CLI v2
-Mesmo sem privilégios administrativos e com restrições severas, é possível instalar o AWS CLI v2 no Windows 11 utilizando um método de extração administrativa (msiexec /a). Isso permite "instalar" o software em uma pasta de usuário sem modificar o registro do Windows ou diretórios de sistema.
+
+Mesmo sem privilégios administrativos e com restrições severas, é possível instalar o AWS CLI v2 no Windows 11 utilizando um método de extração administrativa (`msiexec /a`). Isso permite "instalar" o software em uma pasta de usuário sem modificar o registro do Windows ou diretórios de sistema.
 
 Para maiores informações, consulte:
 - Documentação de instalação: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 - Instalador: https://awscli.amazonaws.com/AWSCLIV2.msi
 
 Executar a instalação, direcionando o local de instalação para `%APPS_BASE%`:
-  ```
-  msiexec /a "AWSCLIV2.msi" /qb TARGETDIR="%APPS_BASE%"
-  ```
+```
+msiexec /a "AWSCLIV2.msi" /qb TARGETDIR="%APPS_BASE%"
+```
 
 Esse comando irá criar o diretório `%APPS_BASE%\Amazon\AWSCLIV2` e extrair o AWS CLI v2 para lá.
 
@@ -35,51 +39,81 @@ Ao final da instalação, você deve:
 - Adicionar esse diretório ao PATH do Windows (Editar as variáveis de ambiente para sua conta).
 - Mover o diretório `C:\Users\<USUÁRIO>\AppData\Local\Microsoft\WindowsApps` para último lugar no PATH
 
-
 ## Google Cloud CLI
-O Google Cloud CLI requer o Python. Antes de instalar o Google Cloud CLI, definir a variável de ambiente ´CLOUDSDK_PYTHON` no "Editar as variáveis de ambiente para sua conta" apontando para `D:\<USUÁRIO>\Apps\Python\bin\python.exe`.
+
+O Google Cloud CLI requer o Python. Antes de instalar o Google Cloud CLI, definir a variável de ambiente `CLOUDSDK_PYTHON` em "Editar as variáveis de ambiente para sua conta" apontando para `D:\<USUÁRIO>\Apps\Python\bin\python.exe`.
 
 Faça download do instalador do Google Cloud CLI a partir de https://docs.cloud.google.com/sdk/docs/install-sdk?hl=pt-br#latest-version.
 
 Executar a instalação, direcionando o local de instalação para `%APPS_BASE%`:
-  ```
-  GoogleCloudSDKInstaller.exe /singleuser /D="%APPS_BASE%\Google\Cloud SDK"
-  ```
+```
+GoogleCloudSDKInstaller.exe /singleuser /D="%APPS_BASE%\Google\Cloud SDK"
+```
 
-Esse comando irá: 
+Esse comando irá:
 - Criar o diretório `%APPS_BASE%\Google\Cloud SDK` e extrair o Google Cloud CLI para lá.
 - Adicionar `D:\<USUÁRIO>\Apps\Google\Cloud SDK\google-cloud-sdk\bin` ao PATH do Windows.
 
 Ao final da instalação, você deve:
 - Mover o diretório `C:\Users\<USUÁRIO>\AppData\Local\Microsoft\WindowsApps` para último lugar no PATH
-  
+
+---
 
 # Junções de diretórios do Windows
 
 ## Motivação
-Permitir que os aplicativos mantenham seus arquivos de configuração sob `C:\Users\<USUÁRIO>`, ao mesmo tempo que possamos manter o `$HOME` do Git Bash apontando para `D:\%USERNAME%\home`.
 
-## Junções de diretórios
+Aplicativos do Windows (AWS CLI, SSH, Claude Code, etc.) gravam seus arquivos de configuração em diretórios *dotfiles* dentro de `%USERPROFILE%` (`C:\Users\%USERNAME%`). Já no Git Bash, este projeto adota `$HOME` apontando para outro local — tipicamente `D:\%USERNAME%\home` — para manter o drive `C:` reservado para o Windows.
 
-As junções de diretórios devem ser criadas de forma que os diretórios de configurações sejam criados pelos aplicativos e utilitários em `%USERPROFILE%` (ou seja, `C:\Users\%USERNAME%`) ao mesmo tempo que 
+A solução é criar **junctions de diretório** (`mklink /J`) em `%USERPROFILE%` apontando para os diretórios reais sob `$HOME`. Assim, os aplicativos do Windows continuam funcionando normalmente (gravam em `C:\Users\%USERNAME%\.aws`), enquanto os arquivos físicos vivem no seu `$HOME` versionável.
 
-| Origem (`%USERPROFILE%`)   | Destino (`$HOME`=`D:\%USERNAME%\home`) |
-| ------------------------ | ---------------------------------------- |
-| `C:\Users\%USERNAME%\.aws` | `D:\%USERNAME%\home\.config\aws`       |
-| `C:\Users\%USERNAME%\.ssh` | `D:\%USERNAME%\home\.ssh`              |
+## Junções criadas pelo `8-bash-junctions.sh`
 
+Toda vez que um novo Git Bash é aberto, o script `8-bash-junctions.sh` verifica e cria (se necessário) as seguintes junctions:
 
+| Origem (`%USERPROFILE%`)       | Destino (`$HOME`)                    | Uso típico                              |
+|--------------------------------|--------------------------------------|-----------------------------------------|
+| `C:\Users\%USERNAME%\.aws`     | `$HOME/.aws`                         | AWS CLI v2 (perfis, SSO)                |
+| `C:\Users\%USERNAME%\.cache`   | `$XDG_CACHE_HOME`                    | Caches XDG                              |
+| `C:\Users\%USERNAME%\.certs`   | `$XDG_CONFIG_HOME/certs`             | Certificados raiz para `NODE_EXTRA_CA_CERTS` |
+| `C:\Users\%USERNAME%\.claude`  | `$CLAUDE_CONFIG_DIR`                 | Claude Code (credenciais OAuth, sessões)|
+| `C:\Users\%USERNAME%\.config`  | `$XDG_CONFIG_HOME`                   | Configurações XDG                       |
+| `C:\Users\%USERNAME%\.local`   | `$HOME/.local`                       | Binários do usuário e dados XDG         |
+| `C:\Users\%USERNAME%\.ssh`     | `$HOME/.ssh`                         | Chaves e config SSH                     |
 
+> **Nota sobre `.aws`:**<br> O script aponta `.aws` diretamente para `$HOME/.aws` (e não para `$XDG_CONFIG_HOME/aws`) porque o AWS CLI v2 ainda não suporta XDG nativamente — ele lê de `~/.aws/config` de forma rígida.
 
-Considere que tenho um Git Bash instalado em meu computador, no qual o `$HOME` aponta para `D:\%USERNAME%\home`, e o meu `$HOME\.bashrc` contém os seguintes comandos:
+## Como o script se comporta
+
+Para cada junction, a função `ensure_junction()` segue este fluxo:
+
+1. **Caminho rápido (estado estável):** se a origem já é uma junction (`[ -L "$src" ]`), retorna imediatamente sem forks.
+2. **Se a origem não existe:** cria o destino (caso falte) e executa `mklink /J "$src_w" "$tgt_w"` via `cmd.exe`. Em sucesso, emite `displaySuccess`; em falha, emite `displayFailure` com a mensagem de erro do Windows.
+3. **Se a origem existe mas não é uma junction** (é um diretório/arquivo real): emite mensagens orientando o usuário a:
+   - Combinar manualmente o conteúdo com o destino;
+   - Remover a origem;
+   - Reiniciar a sessão para que a junction seja criada.
+
+O script **não remove nada automaticamente** — qualquer ação destrutiva sobre arquivos existentes é deixada para o usuário.
+
+## Criação manual (debug ou primeira instalação)
+
+Se você quiser criar uma junction manualmente (fora do script), abra um `cmd.exe` (não precisa de Administrador):
+
+```cmd
+mklink /J "C:\Users\%USERNAME%\.aws" "D:\%USERNAME%\home\.aws"
 ```
-# Configuração de diretórios padrão XDG (X Desktop Group)
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_STATE_HOME="$HOME/.local/state"
-export XDG_CACHE_HOME="$HOME/.cache"
+
+Para verificar se um caminho já é uma junction, no Git Bash:
+
+```bash
+[ -L "/c/Users/$USERNAME/.aws" ] && echo "É junction" || echo "Não é junction"
 ```
 
-**Contexto**: Eu quero que diretórios e arquivos iniciados por ponto (tais como `.aws`, `.node`, `.vim` e outros), pertencentes ferramentas instaladas no Windows sejam criados normalmente pelos instaladores dessas ferramentas em `C:\Users\%USERNAME%` (p.ex, `C:\Users\%USERNAME%\.aws`, `C:\Users\%USERNAME%\.node`, `C:\Users\%USERNAME%\.vim` e outros), mas meu objetivo criar links simbólicos para diretórios sob o `$HOME` do meu Git Bash. Vou mencionar o nome de uma ferramenta específica e, eventualmente, alguma informação adicional sobre ela, e quero que você apresente os comandos `mkjunction /d` do Windows devem ser executados para que eu possa atingir meu objetivo.
+Ou, usando o Windows:
 
-**Ferramenta**: AWS CLI v2, sendo que farei login usando `aws sso login` , e não um arquivo estático com credenciais.
+```cmd
+dir /AL "C:\Users\%USERNAME%"
+```
+
+(diretórios com `<JUNCTION>` na coluna são junctions)

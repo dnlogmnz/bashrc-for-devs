@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Comando: claude-info
+# Descrição: Exibe informações gerais do ambiente Claude Code e da configuração
+# Uso: claude-info
+# ==========================================================================================
+
+echo ""
+displayAction "Informações do Claude Code"
+displayInfo "Versão" "$(claude --version 2>/dev/null || echo 'Não encontrado ou não instalado')"
+
+echo ""
+displayAction "Variáveis de ambiente para Claude Code"
+if [ -n "${ANTHROPIC_API_KEY}" ]; then
+    displayInfo "ANTHROPIC_API_KEY" "Definida"
+else
+    displayInfo "ANTHROPIC_API_KEY" "Não definida"
+fi
+displayInfo "CLAUDE_CODE_GIT_BASH_PATH" "${CLAUDE_CODE_GIT_BASH_PATH:-Não definida}"
+displayInfo "CLAUDE_CONFIG_DIR"         "${CLAUDE_CONFIG_DIR:-Não definida}"
+displayInfo "NODE_EXTRA_CA_CERTS"       "${NODE_EXTRA_CA_CERTS:-Não definida}"
+
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    echo ""
+    displayAction "Configuração do Projeto para Claude Code"
+
+    project_root=$(git rev-parse --show-toplevel)
+    project_settings="$project_root/.claude/settings.json"
+    
+    if [[ -f "$project_settings" ]]; then
+        displayInfo "Configuração (opcional)" "Encontrada em $project_root/.claude/settings.json"
+    else
+        displayInfo "Configuração (opcional)" "Não encontrada"
+    fi
+fi
+
+#-------------------------------------------------------------------------------------------
+#--- Final do script claude-info
+#-------------------------------------------------------------------------------------------

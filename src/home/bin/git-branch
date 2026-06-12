@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Comando: git-branch
+# Descrição: Exibe branches remotos e locais, além do status atual
+# Uso: git-branch
+# ==========================================================================================
+
+if ! git rev-parse --git-dir &>/dev/null; then
+  displayFailure "Erro" "Este diretório não é um repositório Git"
+  exit 1
+fi
+
+displayAction "Remote Branches"
+git branch -vv -r
+echo ""
+
+displayAction "Local Branches"
+git branch -vv
+echo ""
+
+displayAction "Current Branch"
+displayInfo "Branch" "$(git branch --show-current)"
+displayInfo "Arquivos modificados" "$(git status --porcelain | wc -l)"
+displayInfo "Commits ahead" "$(git rev-list --count HEAD @{upstream} 2>/dev/null || echo '0')"
+displayInfo "Commits behind" "$(git rev-list --count @{upstream} HEAD 2>/dev/null || echo '0')"
