@@ -13,14 +13,14 @@ O diretório `src/home/` espelha a estrutura alvo `~/` — os arquivos aqui são
 ```
 src/home/
 ├── .config/bashrc/            # Scripts de inicialização sourced pelo ~/.bashrc (ordem detalhada abaixo)
+│   ├── docs/                  # Documentação e arquivos de ajuda do usuário
 │   ├── templates/             # Templates de configuração (uv, ruff, Claude, VS Code)
 │   │   ├── claude/            # Templates de settings.json do Claude Code
 │   │   ├── vscode/            # Templates de settings.json do VS Code
 │   │   └── *.example          # Templates de configuração (dot-env, uv, ruff, pyproject.toml, etc.)
 │   └── *.sh                   # Scripts de inicialização (núcleo carregado primeiro; demais em ordem alfabética)
-├── bin/                       # Scripts executáveis do projeto (Git Bash adiciona ~/bin ao PATH automaticamente)
-│   └── helpers/               # Helpers sourced pelos scripts executáveis
-└── .local/share/bashrc/help/  # Documentação e arquivos de ajuda do usuário
+└── bin/                       # Scripts executáveis do projeto (Git Bash adiciona ~/bin ao PATH automaticamente)
+    └── helpers/               # Helpers sourced pelos scripts executáveis
 ```
 
 > **Sobre `~/bin` vs `~/.local/bin`:** <li>Os scripts deste projeto ficam em `~/bin/` porque o Git Bash já adiciona esse diretório ao PATH automaticamente — não precisamos gerenciar PATH para nossos scripts. <li>O `~/.local/bin/` continua relevante para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code), e o `bash-junctions.sh` garante que esse caminho esteja no PATH.
