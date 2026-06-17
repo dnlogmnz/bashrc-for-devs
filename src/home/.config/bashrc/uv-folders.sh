@@ -24,20 +24,20 @@ fi
 
 #  Adicionar diretório dos binários UV ao PATH
 if [[ ":$PATH:" != *":${UV_INSTALL_DIR}:"* ]]; then
-    displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(command path2win "$UV_INSTALL_DIR")\" ao PATH"
+    displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(cygpath -w "$UV_INSTALL_DIR")\" ao PATH"
     export PATH="${UV_INSTALL_DIR}:$PATH"
 fi
 
 #  Adicionar diretório dos binários do Python gerenciado pelo UV ao PATH
 if [ -d "${UV_PYTHON_BIN_DIR}" ]; then
     if [[ ":${PATH}:" != *":${UV_PYTHON_BIN_DIR}:"* ]]; then
-        displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(command path2win "$UV_PYTHON_BIN_DIR")\" ao PATH"
+        displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(cygpath -w "$UV_PYTHON_BIN_DIR")\" ao PATH"
         export PATH="${UV_PYTHON_BIN_DIR}:$PATH"
     fi
 fi
 
 # Obtém o diretório do Windows Store
-_store_dir="$(command path2lin "$LOCALAPPDATA/Microsoft/WindowsApps")"
+_store_dir="$(cygpath -u "$LOCALAPPDATA/Microsoft/WindowsApps")"
 
 # Validar que instaladores do python (Windows Store) estão desabilitados: vamos usar python gerenciado pelo 'uv'
 for _py_exe in python python3; do

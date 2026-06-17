@@ -17,7 +17,7 @@ fi
 
 # Adicionar Node.js ao PATH
 if [[ ":$PATH:" != *":$NODE_CURRENT:"* ]]; then
-    displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(command path2win "$NODE_CURRENT")\" ao PATH"
+    displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(cygpath -w "$NODE_CURRENT")\" ao PATH"
     export PATH="$NODE_CURRENT:$PATH"
 fi
 
