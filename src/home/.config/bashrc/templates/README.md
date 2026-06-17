@@ -18,7 +18,7 @@ templates/
 │   └── uv.toml.example                # Template de uv.toml global
 ├── claude/
 │   ├── home-dot-claude-settings.json  # settings.json global do Claude Code (XDG)
-│   └── project--dot-claude-settings.json  # settings.json por projeto
+│   └── project-dot-claude-settings.json  # settings.json por projeto
 └── vscode/
     └── settings.json                  # Preferências globais do VS Code
 ```

@@ -83,9 +83,9 @@ _claude_validate_required_config() {
         displayInfo    "Claude AI (web)"  "login em Claude AI (padrão) - requer assinatura Anthropic Pro/Max"
         displayInfo    "Anthropic API"    "ANTHROPIC_API_KEY"
         displayInfo    "AI Gateway"       "ANTHROPIC_AUTH_TOKEN"
+        displayInfo    "Azure Foundry"    "CLAUDE_CODE_USE_FOUNDRY"
         displayInfo    "AWS Bedrock"      "CLAUDE_CODE_USE_BEDROCK"
         displayInfo    "Google Vertex AI" "CLAUDE_CODE_USE_VERTEX"
-        displayInfo    "Azure Foundry"    "CLAUDE_CODE_USE_FOUNDRY"
     fi
 
     # --- settings.json -------------------------------------------------------

@@ -4,8 +4,8 @@
 # ==========================================================================================
 cd $HOME
 
-# Diretório base para aplicações e ferramentas.
-export APPS_BASE="/d/${USERNAME}/Apps"
+# Diretório base para aplicações e ferramentas
+export APPS_BASE="${APPS_BASE:-/d/${USERNAME}/Apps}"
 
 # Configurações de locale
 export LANG=pt_BR.UTF-8
