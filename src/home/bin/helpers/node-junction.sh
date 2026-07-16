@@ -12,15 +12,15 @@ fi
 #-------------------------------------------------------------------------------------------
 # HELPER: Cria ou recria a junction $NODE_CURRENT → $node_dir via cmd.exe
 # Equivalente nvm: nvm alias default <versão>
-# Dependência externa: path2win() — função que converte caminhos Unix para Windows
+# Dependência externa: cygpath — converte caminhos Unix para Windows
 #-------------------------------------------------------------------------------------------
 _node_set_junction() {
     local new_current_dir="$1"
 
     # Converter caminhos para formato Windows (necessário para mklink /J)
     local win_current win_target
-    win_current=$(command path2win "$NODE_CURRENT")
-    win_target=$(command path2win "$new_current_dir")
+    win_current=$(command cygpath -w -- "$NODE_CURRENT")
+    win_target=$(command cygpath -w -- "$new_current_dir")
 
     # Remover junction existente
     if [ -e "$NODE_CURRENT" ] || [ -L "$NODE_CURRENT" ]; then
