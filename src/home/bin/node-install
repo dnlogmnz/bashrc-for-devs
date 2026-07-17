@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: node-install
 # Descrição: Baixa e instala uma versão do Node.js em $NODE_HOME (substituto de nvm install)

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-ruff-toml.sh
 # Descrição: Criar arquivo ruff.toml no diretório corrente com configurações de Linter & Formatter
@@ -34,7 +35,7 @@ displayAction "Criando arquivo ruff.toml com configurações de Linter & Formatt
 displayInfo "Target Python" "${python_version}"
 displayInfo "Line Length" "$line_length"
 
-TEMPLATE_FILE="$HOME/.config/bashrc/templates/ruff.toml.example"
+TEMPLATE_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/bash/templates/ruff.toml.example"
 if [ ! -f "$TEMPLATE_FILE" ]; then
     displayFailure "Erro" "Template não encontrado: $TEMPLATE_FILE"
     exit 1

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-dot-env.sh
 # Descrição: Criar arquivo .env no diretório corrente com template de variáveis de ambiente
@@ -21,7 +22,7 @@ fi
 # Criar .env com template
 displayAction "Criando arquivo .env com template de variáveis de ambiente"
 
-TEMPLATE_FILE="$HOME/.config/bashrc/templates/dot-env.example"
+TEMPLATE_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/bash/templates/dot-env.example"
 if [ ! -f "$TEMPLATE_FILE" ]; then
     displayFailure "Erro" "Template não encontrado: $TEMPLATE_FILE"
     exit 1

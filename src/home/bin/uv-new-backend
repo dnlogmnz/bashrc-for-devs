@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: uv-new-backend
 # Descrição: Cria um backend profissional UV com src layout, build system e estrutura para API/CLI

@@ -1,7 +1,8 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: git-info
-# Descrição: Exibe informações do Git (versão, configs globais e status do repositório atual)
+# Descrição: Exibe informações do Git (versão, configs globais, status do repo atual)
 # Uso: git-info
 # ==========================================================================================
 

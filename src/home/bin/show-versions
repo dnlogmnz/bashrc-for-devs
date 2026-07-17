@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: show-versions
 # Descrição: Mostra versões de várias ferramentas (bash, python, node, npm).

@@ -1,7 +1,9 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.bashrc
-# Executado por shells interativos.
-# Define variáveis e carrega os scripts rc.
+# Descrição: Define variáveis XDG e carrega os scripts rc.
+# Nota: Executado por shells interativos.
 # =============================================================================
 
 # Mapeia variáveis de ambiente com diretórios XDG normalizadas com "cygpath -u" para array "_xdg"

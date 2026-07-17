@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: uv-new-app
 # Descrição: Cria uma aplicação UV empacotada com src layout (scripts, notebooks, uso geral)

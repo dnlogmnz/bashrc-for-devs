@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.config/bashrc/node-extra-certs.sh
 # Gerencia o certificado raiz CA para uso de ferramentas baseadas em Node.js
 # (incluindo Claude Code instalado via npm) em ambientes corporativos.

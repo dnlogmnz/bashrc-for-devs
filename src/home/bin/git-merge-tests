@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: git-merge-tests
 # Descrição: Atualiza branches de CI/CD e gera relatórios de merge (staging -> main)

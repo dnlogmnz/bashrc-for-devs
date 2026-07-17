@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: echodo
 # Descrição: Exibe uma linha e executa o comando passado (como função echodo)

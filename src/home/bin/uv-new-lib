@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: uv-new-lib
 # Descrição: Cria uma biblioteca Python reutilizável com UV, preparada para distribuição (PyPI)

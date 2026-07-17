@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.config/bashrc/uv-folders.sh
 # Validar diretórios e PATH para o UV (Python Package Manager)
 # ==========================================================================================

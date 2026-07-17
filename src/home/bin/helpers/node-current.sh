@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/node-current.sh
 # Descrição: Funções para detecção e exibição da versão atual do Node.js

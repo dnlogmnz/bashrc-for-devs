@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: uv-info
 # Descrição: Exibe informações do UV e das versões de Python instaladas

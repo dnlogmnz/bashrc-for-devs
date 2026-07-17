@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-pyproject-toml.sh
 # Descrição: Criar arquivo pyproject.toml no diretório corrente
@@ -37,7 +38,7 @@ displayInfo "Projeto" "$project_name"
 displayInfo "Python" ">=$python_version"
 displayInfo "Autor" "$author_name <$author_email>"
 
-TEMPLATE_FILE="$HOME/.config/bashrc/templates/pyproject.toml.example"
+TEMPLATE_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/bash/templates/pyproject.toml.example"
 if [ ! -f "$TEMPLATE_FILE" ]; then
     displayFailure "Erro" "Template não encontrado: $TEMPLATE_FILE"
     exit 1

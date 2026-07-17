@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: claude-info
 # Descrição: Exibe informações gerais do ambiente Claude Code e da configuração

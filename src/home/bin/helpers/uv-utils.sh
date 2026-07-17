@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-utils.sh
 # Descrição: Funções utilitárias e helpers para scripts UV

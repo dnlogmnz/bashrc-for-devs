@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: uv-new-project
 # Descrição: Alias de compatibilidade para uv-new-app

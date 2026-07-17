@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.config/bashrc/node-folders.sh
 # Variáveis de ambiente para o Node.js
 # ==========================================================================================

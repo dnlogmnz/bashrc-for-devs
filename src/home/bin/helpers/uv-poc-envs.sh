@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-poc-envs.sh
 # Descrição: Criar estrutura de ambientes em ./envs/ para Proof of Concept
@@ -21,7 +22,7 @@ fi
 displayAction "Criando estrutura de ambientes em ./envs/"
 displayInfo "Ambientes" "prod-a, prod-b, prod-c"
 
-TEMPLATE_FILE="$HOME/.config/bashrc/templates/poc-env.example"
+TEMPLATE_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/bash/templates/poc-env.example"
 if [ ! -f "$TEMPLATE_FILE" ]; then
     displayFailure "Erro" "Template não encontrado: $TEMPLATE_FILE"
     exit 1

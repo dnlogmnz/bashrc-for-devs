@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: urlencode
 # Descrição: URL-encode a string fornecida.

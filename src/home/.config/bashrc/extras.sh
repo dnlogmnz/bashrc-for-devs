@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+
 # Script: ~/.config/bashrc/extras.sh
 # Definições extras
 # =============================================================================

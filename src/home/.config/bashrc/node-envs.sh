@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.config/bashrc/node-envs.sh
 # Variáveis de ambiente para o Node.js
 # Dica: Algumas variáveis não são "oficiais", ou seja, não são parte da documentação

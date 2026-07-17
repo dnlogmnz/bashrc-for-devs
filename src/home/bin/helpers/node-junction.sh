@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/node-junction.sh
 # Descrição: Funções para gerenciamento de junctions do Node.js no Windows

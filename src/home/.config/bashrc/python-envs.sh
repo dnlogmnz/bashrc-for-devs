@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.config/bashrc/python-envs.sh
 # Variáveis de ambiente para o Python
 # ==========================================================================================

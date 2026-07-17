@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-toml.sh
 # Criar arquivo "uv.toml", caso ainda não existir
@@ -15,7 +16,7 @@ if [ -d "${UV_HOME}" ]; then
 
     # Cria um novo arquivo, caso ainda não exitir
     if [ ! -r "$UV_CONFIG_FILE" ]; then
-        TEMPLATE_FILE="$HOME/.config/bashrc/templates/uv.toml.example"
+        TEMPLATE_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/bash/templates/uv.toml.example"
         if [ ! -f "$TEMPLATE_FILE" ]; then
             displayFailure "Erro" "Template não encontrado: $TEMPLATE_FILE"
             exit 1

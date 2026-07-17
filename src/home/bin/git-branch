@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: git-branch
 # Descrição: Exibe branches remotos e locais, além do status atual

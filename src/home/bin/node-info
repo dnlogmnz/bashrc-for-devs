@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: node-info
 # Descrição: Exibe informações gerais do ambiente Node.js e NPM

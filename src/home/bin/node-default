@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: node-default
 # Descrição: Define a versão padrão do Node.js recriando a junction $NODE_HOME/current

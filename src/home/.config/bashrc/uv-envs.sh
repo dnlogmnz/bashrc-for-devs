@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+#
 # Script: ~/.config/bashrc/uv-envs.sh
 # Variaveis de ambiente para o UV (Python Package Manager)
 # ==========================================================================================

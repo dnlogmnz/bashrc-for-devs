@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+
 # Script: ~/.config/bashrc/bash-junctions.sh
 # Cria junctions em %USERPROFILE% apontando para pastas dotfile reais em $HOME.
 # =============================================================================

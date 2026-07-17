@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+
 # Script: ~/.config/bashrc/git-envs.sh
 # Aliases e Variaveis de ambiente para o Git CLI
 # Ver: https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables

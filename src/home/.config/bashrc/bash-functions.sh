@@ -1,4 +1,6 @@
 #
+# Projeto: bashrc-for-devs
+
 # Script: ~/.config/bashrc/bash-functions.sh
 # Funções para exibir mensagens
 # =============================================================================

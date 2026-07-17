@@ -1,4 +1,5 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: uv-new-poc
 # Descrição: Cria um projeto Proof of Concept com UV (estrutura simples, múltiplos envs)

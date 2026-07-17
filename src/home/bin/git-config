@@ -1,9 +1,10 @@
 #!/bin/bash
+# Projeto: bashrc-for-devs
 #
 # Comando: git-config
 # Descrição: Configurações globais do Git (nome e email, e alguns parâmetros básicos)
 # Uso: git-config
-# Nota: Projetado para uso interativo; aborta em ambientes não interativos.
+# Nota: Projetado para uso em shell interativo; aborta em shell não interativo.
 # ==========================================================================================
 
 # Verificar se estamos em ambiente interativo
