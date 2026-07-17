@@ -7,7 +7,11 @@
 cd $HOME
 
 # Diretório base para aplicações e ferramentas
-export APPS_BASE="$(cygpath -u "${APPS_BASE:-/d/${USERNAME}/Apps}")"
+# cygpath só é chamado se o valor vier em formato Windows (evita fork no caso comum)
+_apps_base="${APPS_BASE:-/d/${USERNAME}/Apps}"
+[[ "$_apps_base" == [A-Za-z]:* ]] && _apps_base="$(cygpath -u -- "$_apps_base")"
+export APPS_BASE="$_apps_base"
+unset _apps_base
 
 # Configurações de locale
 export LANG=pt_BR.UTF-8

@@ -6,20 +6,25 @@
 # Nota: Executado por shells interativos.
 # =============================================================================
 
-# Mapeia variáveis de ambiente com diretórios XDG normalizadas com "cygpath -u" para array "_xdg"
-mapfile -t _xdg < <(cygpath -u \
-    "${XDG_CACHE_HOME:-$HOME/.cache}" \
-    "${XDG_CONFIG_HOME:-$HOME/.config}" \
-    "${XDG_DATA_HOME:-$HOME/.local/share}" \
-    "${XDG_STATE_HOME:-$HOME/.local/state}"
-    )
+# Resolve os defaults XDG (já em formato Unix na maioria dos casos)
+_xdg_cache="${XDG_CACHE_HOME:-$HOME/.cache}"
+_xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
+_xdg_data="${XDG_DATA_HOME:-$HOME/.local/share}"
+_xdg_state="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+# cygpath só é chamado se algum valor vier em formato Windows (evita fork no caso comum)
+if [[ "$_xdg_cache" == [A-Za-z]:* || "$_xdg_config" == [A-Za-z]:* || \
+      "$_xdg_data"  == [A-Za-z]:* || "$_xdg_state"  == [A-Za-z]:* ]]; then
+    mapfile -t _xdg < <(cygpath -u "$_xdg_cache" "$_xdg_config" "$_xdg_data" "$_xdg_state")
+    _xdg_cache="${_xdg[0]}"; _xdg_config="${_xdg[1]}"; _xdg_data="${_xdg[2]}"; _xdg_state="${_xdg[3]}"
+fi
 
 # Define as variáveis de diretórios padrão XDG (X Desktop Group)
 export \
-    XDG_CACHE_HOME="${_xdg[0]}" \
-    XDG_CONFIG_HOME="${_xdg[1]}"\
-    XDG_DATA_HOME="${_xdg[2]}" \
-    XDG_STATE_HOME="${_xdg[3]}"
+    XDG_CACHE_HOME="$_xdg_cache" \
+    XDG_CONFIG_HOME="$_xdg_config" \
+    XDG_DATA_HOME="$_xdg_data" \
+    XDG_STATE_HOME="$_xdg_state"
 
 # Garante que a estrutura de pastas existe (evitar erro "File not found")
 if [ ! -d "$XDG_CACHE_HOME" ] || [ ! -d "$XDG_CONFIG_HOME" ] || \
@@ -43,7 +48,7 @@ done
 source "$XDG_CONFIG_HOME/bashrc/bash-junctions.sh"
 
 # Limpa variáveis do escopo global
-unset rc _xdg
+unset rc _xdg _xdg_cache _xdg_config _xdg_data _xdg_state
 
 #--------------------------------------------------------------------------------
 #--- Final do script ~/.bashrc

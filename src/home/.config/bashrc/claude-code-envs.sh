@@ -6,6 +6,13 @@
 # ==========================================================================================
 
 # ---------------------------------------------------------------------------
+# Verificação inicial: o binário precisa estar disponível em $HOME/.local/bin
+# ---------------------------------------------------------------------------
+if [[ ! -x "$HOME/.local/bin/claude.exe" ]]; then
+    return 0 2>/dev/null || exit 0
+fi
+
+# ---------------------------------------------------------------------------
 # CLAUDE_CONFIG_DIR
 # O Claude Code procura seu diretório de configuração na seguinte ordem:
 #   1. Variável CLAUDE_CONFIG_DIR (se já definida antes de abrir o shell)
@@ -20,6 +27,11 @@ if [[ -z "$CLAUDE_CONFIG_DIR" ]]; then
     elif [[ -n "$HOME" ]]; then
         export CLAUDE_CONFIG_DIR="$HOME/.config/claude"
     fi
+fi
+
+# Converte caminhos Windows para o formato Unix quando necessário.
+if [[ "$CLAUDE_CONFIG_DIR" == [A-Za-z]:* ]]; then
+    export CLAUDE_CONFIG_DIR="$(cygpath -u -- "$CLAUDE_CONFIG_DIR")"
 fi
 
 # ---------------------------------------------------------------------------
@@ -39,9 +51,10 @@ _claude_validate_required_config() {
 
     # Lê o settings.json global uma única vez via redireção builtin (sem fork).
     # Reutilizado pelas validações abaixo para inspecionar o bloco "env".
-    local global_settings="${CLAUDE_CONFIG_DIR}/settings.json"
+    local config_dir="${CLAUDE_CONFIG_DIR%/}"
+    local settings_json="$config_dir/settings.json"
     local settings_content=""
-    [[ -f "$global_settings" ]] && settings_content="$(< "$global_settings")"
+    [[ -f "$settings_json" ]] && settings_content="$(< "$settings_json")"
 
     # --- CLAUDE_CODE_GIT_BASH_PATH -------------------------------------------
     # Validação em ordem de prioridade (linha de comando é ignorada aqui):
@@ -49,7 +62,7 @@ _claude_validate_required_config() {
     #   2. settings.json        → local esperado pelo projeto (bloco "env")  → OK
     # Não estando em nenhum nível, falha apontando para o settings.json.
     if ! _claude_is_set CLAUDE_CODE_GIT_BASH_PATH; then
-        displayFailure "Claude Code" "CLAUDE_CODE_GIT_BASH_PATH não definida → adicione no bloco \"env\" de $global_settings"
+        displayFailure "Claude Code" "CLAUDE_CODE_GIT_BASH_PATH não definida → adicione no bloco \"env\" de $settings_json"
     fi
 
     # --- Autenticação -------------------------------------------------------
@@ -73,27 +86,16 @@ _claude_validate_required_config() {
     _claude_is_set CLAUDE_CODE_USE_VERTEX  && auth_methods+=("CLAUDE_CODE_USE_VERTEX")
     _claude_is_set CLAUDE_CODE_USE_FOUNDRY && auth_methods+=("CLAUDE_CODE_USE_FOUNDRY")
 
-    local oauth_creds="$CLAUDE_CONFIG_DIR/.credentials.json"
     local n=${#auth_methods[@]}
 
     if (( n > 1 )); then
         # Conflito: mais de um provedor/credencial explícito definido.
         displayFailure "Claude Code" "Múltiplos métodos de autenticação definidos — use apenas um: ${auth_methods[*]}"
-    elif (( n == 0 )) && [[ ! -f "$oauth_creds" ]]; then
-        # Nenhum método explícito e sem login OAuth em disco.
-        displayWarning "Claude Code"      "Nenhuma autenticação configurada. Opções:"
-        displayInfo    "Claude AI (web)"  "login em Claude AI (padrão) - requer assinatura Anthropic Pro/Max"
-        displayInfo    "Anthropic API"    "ANTHROPIC_API_KEY"
-        displayInfo    "AI Gateway"       "ANTHROPIC_AUTH_TOKEN"
-        displayInfo    "Azure Foundry"    "CLAUDE_CODE_USE_FOUNDRY"
-        displayInfo    "AWS Bedrock"      "CLAUDE_CODE_USE_BEDROCK"
-        displayInfo    "Google Vertex AI" "CLAUDE_CODE_USE_VERTEX"
     fi
 
     # --- settings.json -------------------------------------------------------
-    if [[ ! -f "$global_settings" ]]; then
-        displayWarning "Claude Code" "settings.json não encontrado: $global_settings"
-        displayInfo    "Criar com"   "touch \"$global_settings\""
+    if [[ ! -f "$settings_json" ]]; then
+        displayWarning "Claude Code" "settings.json não encontrado: $settings_json"
     fi
 
 }

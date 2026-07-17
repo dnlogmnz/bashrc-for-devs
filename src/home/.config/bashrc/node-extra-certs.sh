@@ -18,10 +18,15 @@
 
 cert_dir="${XDG_CONFIG_HOME:-$HOME/.config}/certs"
 cert_file="$cert_dir/ca_root.pem"
+cert_stamp="$cert_dir/ca_root.stamp"
 
 # Cache: só renovar o certificado se ele não existe ou tem mais de 7 dias.
 # Evita chamada de rede (openssl s_client) em todo shell novo.
-if [ ! -f "$cert_file" ] || [ -n "$(find "$cert_file" -mtime +7 2>/dev/null)" ]; then
+# Comparação via stamp de epoch (builtins, sem fork) — substitui "find -mtime" (fork em todo shell).
+printf -v _cert_now '%(%s)T' -1
+_cert_stamp=0
+[ -f "$cert_stamp" ] && _cert_stamp="$(< "$cert_stamp")"
+if [ ! -f "$cert_file" ] || (( _cert_now - _cert_stamp > 7*86400 )); then
     cert_tmp="$cert_file.new"
     [ -d "$cert_dir" ] || mkdir -p "$cert_dir"
 
@@ -36,11 +41,13 @@ if [ ! -f "$cert_file" ] || [ -n "$(find "$cert_file" -mtime +7 2>/dev/null)" ];
     # caso contrário, descarta o tmp e mantém o cert anterior (se existir).
     if openssl x509 -in "$cert_tmp" -noout 2>/dev/null; then
         mv "$cert_tmp" "$cert_file"
+        printf '%s' "$_cert_now" > "$cert_stamp"
     else
         displayFailure "Certificado raiz" "Não foi possível obter certificado - verifique a conectividade"
         rm -f "$cert_tmp"
     fi
 fi
+unset _cert_now _cert_stamp cert_stamp
 
 # Exporta para o Claude Code (apenas quando instalado via npm/Node.js)
 # O instalador nativo usa a loja de certificados do Windows automaticamente.
