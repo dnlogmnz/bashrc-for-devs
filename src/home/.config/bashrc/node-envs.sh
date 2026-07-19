@@ -2,13 +2,16 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.config/bashrc/node-envs.sh
-# Variáveis de ambiente para o Node.js
-# Dica: Algumas variáveis não são "oficiais", ou seja, não são parte da documentação
-#       do Node.js e NPM, mas são usadas aqui seguindo práticas comuns da comunidade.
+# Objetivo: definir variáveis de ambiente para o Node.js
 # ==========================================================================================
+#
+# Nota: Algumas variáveis não são "oficiais", ou seja, não são parte da documentação do
+#       Node.js e NPM, mas são usadas aqui seguindo práticas comuns da comunidade.
+# ==========================================================================================
+#
 # NOTA IMPORTANTE sobre NPM_CONFIG_PREFIX e isolamento por versão:
 #
-# Os pacotes npm instalados globalmente (`npm install -g`) frequentemente contêm binários
+# Pacotes npm instalados globalmente (`npm install -g`) frequentemente contêm binários
 # nativos compilados especificamente para a versão do Node.js/npm usada na instalação.
 # Diferentes versões do Node.js (v20, v22, v24, etc.) podem produzir binários incompatíveis.
 #

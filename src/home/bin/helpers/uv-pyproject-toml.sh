@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-pyproject-toml.sh
-# Descrição: Criar arquivo pyproject.toml no diretório corrente
+# Objetivo: Criar arquivo pyproject.toml no diretório corrente
 # Uso: uv-pyproject-toml.sh <project_name> [python_version] [build_mode]
 # Argumentos:
 #   $1: Nome do projeto (obrigatório)

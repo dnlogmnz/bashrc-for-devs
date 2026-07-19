@@ -2,8 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-dot-env.sh
-# Descrição: Criar arquivo .env no diretório corrente com template de variáveis de ambiente
-# Uso: uv-dot-env.sh
+# Objetivo: Criar arquivo .env no diretório corrente com template de variáveis de ambiente
 # Nota: Detecta automaticamente se está em um projeto (busca por pyproject.toml)
 # ==========================================================================================
 

@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.config/bashrc/uv-folders.sh
-# Validar diretórios e PATH para o UV (Python Package Manager)
+# Objetivo: validar diretórios e PATH para o UV (Python Package Manager)
 # ==========================================================================================
 
 # Criar Diretórios para python

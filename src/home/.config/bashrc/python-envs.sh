@@ -2,8 +2,9 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.config/bashrc/python-envs.sh
-# Variáveis de ambiente para o Python
+# Objetivo: definir variáveis de ambiente para o Python
 # ==========================================================================================
+#
 # NOTA IMPORTANTE sobre instalação do Python neste computador:
 # - Python é gerenciado exclusivamente pelo uv neste computador.
 # - Não instale Python diretamente (python.org, winget, chocolatey, etc.).

@@ -1,8 +1,8 @@
 #
 # Projeto: bashrc-for-devs
-
+#
 # Script: ~/.config/bashrc/bash-functions.sh
-# Funções para exibir mensagens
+# Objetivo: definir funções para exibir mensagens
 # =============================================================================
 
 # Definir variaveis para cores das mensagens, usando códigos ANSI

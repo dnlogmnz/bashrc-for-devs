@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-utils.sh
-# Descrição: Funções utilitárias e helpers para scripts UV
+# Objetivo: definir funções utilitárias e helpers para scripts UV
 # ==========================================================================================
 
 #-------------------------------------------------------------------------------------------

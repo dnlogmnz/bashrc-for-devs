@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-ruff-toml.sh
-# Descrição: Criar arquivo ruff.toml no diretório corrente com configurações de Linter & Formatter
+# Objetivo: Criar arquivo ruff.toml no diretório corrente com configurações de Linter & Formatter
 # Uso: uv-ruff-toml.sh <python_version> [project_name]
 # Argumentos:
 #   $1: Versão Python (obrigatório, ex: 3.10, 3.11)

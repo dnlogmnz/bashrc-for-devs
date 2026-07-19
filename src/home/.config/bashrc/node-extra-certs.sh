@@ -2,8 +2,8 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.config/bashrc/node-extra-certs.sh
-# Gerencia o certificado raiz CA para uso de ferramentas baseadas em Node.js
-# (incluindo Claude Code instalado via npm) em ambientes corporativos.
+# Objetivo: gerencia o certificado raiz CA para uso de ferramentas baseadas em Node.js
+# ==========================================================================================
 #
 # QUANDO ESTE SCRIPT É NECESSÁRIO:
 #   - Você está em rede corporativa com proxy de inspeção SSL (ex.: Zscaler, CrowdStrike)
@@ -13,7 +13,6 @@
 #   - Instalação nativa do Claude Code (recomendada): integra automaticamente
 #     a loja de certificados do Windows — sem configuração extra.
 #   - Assinantes Pro/Max em rede doméstica ou corporativa sem inspeção SSL.
-#
 # ==========================================================================================
 
 cert_dir="${XDG_CONFIG_HOME:-$HOME/.config}/certs"
@@ -47,7 +46,6 @@ if [ ! -f "$cert_file" ] || (( _cert_now - _cert_stamp > 7*86400 )); then
         rm -f "$cert_tmp"
     fi
 fi
-unset _cert_now _cert_stamp cert_stamp
 
 # Exporta para o Claude Code (apenas quando instalado via npm/Node.js)
 # O instalador nativo usa a loja de certificados do Windows automaticamente.
@@ -55,6 +53,9 @@ if [ -f "$cert_file" ]; then
     export NODE_EXTRA_CA_CERTS="$cert_file"
     export SSL_CERT_FILE="$cert_file"
 fi
+
+# Limpa variáveis do escopo global
+unset _cert_now _cert_stamp cert_dir cert_file cert_stamp cert_tmp
 
 #-------------------------------------------------------------------------------------------
 #--- Final do script node-extra-certs.sh

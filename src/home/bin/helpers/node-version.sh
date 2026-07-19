@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/node-version.sh
-# Descrição: Funções utilitárias para parsing e normalização de versões Node.js
+# Objetivo: definir funções utilitárias para parsing e normalização de versões Node.js
 # ==========================================================================================
 
 #-------------------------------------------------------------------------------------------

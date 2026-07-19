@@ -1,8 +1,8 @@
 #
 # Projeto: bashrc-for-devs
-
+#
 # Script: ~/.config/bashrc/bash-junctions.sh
-# Cria junctions em %USERPROFILE% apontando para pastas dotfile reais em $HOME.
+# Objetivo: criar junctions em %USERPROFILE% para pastas dotfile reais em $HOME.
 # =============================================================================
 
 # Normalizar o caminho do USERPROFILE para notação Linux/Unix
@@ -67,8 +67,9 @@ ensure_junction ".ssh"    "$HOME/.ssh"
 
 # Limpa variáveis do escopo global
 unset _usr_profile
-unset -f _resolve_home
-unset -f ensure_junction
+
+# Limpar funções auxiliares do escopo global
+unset -f _resolve_home ensure_junction
 
 #-------------------------------------------------------------------------------------------
 #--- Final do script bash-junctions.sh

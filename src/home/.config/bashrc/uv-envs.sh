@@ -2,8 +2,9 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.config/bashrc/uv-envs.sh
-# Variaveis de ambiente para o UV (Python Package Manager)
+# Objetivo: definir variáveis de ambiente para o UV (Python Package Manager)
 # ==========================================================================================
+#
 # NOTA IMPORTANTE sobre instalação do Python neste computador:
 # - Python é gerenciado exclusivamente pelo uv neste computador.
 # - Não instale Python diretamente (python.org, winget, chocolatey, etc.).

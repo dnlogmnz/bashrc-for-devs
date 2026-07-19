@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/node-junction.sh
-# Descrição: Funções para gerenciamento de junctions do Node.js no Windows
+# Objetivo: definir funções para gerenciamento de junctions do Node.js no Windows
 # ==========================================================================================
 
 # Source do helper de versão corrente

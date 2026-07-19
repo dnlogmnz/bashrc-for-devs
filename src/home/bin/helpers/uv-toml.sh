@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-toml.sh
-# Criar arquivo "uv.toml", caso ainda não existir
+# Objetivo: criar arquivo "uv.toml", caso ainda não existir
 # ==========================================================================================
 
 if [ -d "${UV_HOME}" ]; then

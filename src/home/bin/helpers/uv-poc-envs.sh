@@ -2,8 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/bin/helpers/uv-poc-envs.sh
-# Descrição: Criar estrutura de ambientes em ./envs/ para Proof of Concept
-# Uso: uv-poc-envs.sh
+# Objetivo: Criar estrutura de ambientes em ./envs/ para Proof of Concept
 # Cria: envs/prod-a.sh, envs/prod-b.sh, envs/prod-c.sh
 # ==========================================================================================
 

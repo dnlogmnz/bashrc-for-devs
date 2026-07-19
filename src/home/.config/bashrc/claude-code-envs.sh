@@ -1,8 +1,8 @@
 #
 # Projeto: bashrc-for-devs
-
+#
 # Script: ~/.config/bashrc/claude-code-envs.sh
-# Valida variáveis de ambiente e configura aliases para uso do Claude Code.
+# Objetivo: validar variáveis de ambiente e configura aliases para uso do Claude Code.
 # ==========================================================================================
 
 # ---------------------------------------------------------------------------

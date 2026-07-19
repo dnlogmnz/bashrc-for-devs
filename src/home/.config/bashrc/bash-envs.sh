@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.config/bashrc/bash-envs.sh
-# Aliases e variáveis de ambiente para o Git Bash
+# Objetivo: definir aliases e variáveis de ambiente para o Git Bash
 # ==========================================================================================
 cd $HOME
 
