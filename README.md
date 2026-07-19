@@ -36,7 +36,7 @@ O padrão XDG define variáveis de ambiente que apontam para locais específicos
 *   **`$XDG_CACHE_HOME` (`$HOME/.cache/`)**: Destinado a dados não essenciais que podem ser apagados para liberar espaço (ex: caches de compiladores ou gerenciadores de pacotes).
 *   **Binários do Usuário (`$HOME/.local/bin/`)**: Embora não seja estritamente parte da especificação XDG original, o FHS recomenda este local para scripts customizados e executáveis instalados pelo usuário que devem ser incluídos no `$PATH`.
 
-> [!TIPs]
+> [!TIP]
 > * Não crie arquivos ocultos diretamente na raiz do seu `$HOME`.
 > * Prefira colocar arquivos de configuração em `$XDG_CONFIG_HOME` (por exemplo, `$HOME/.config`) e dados em `$XDG_DATA_HOME` (por exemplo, `$HOME/.local/share`).
 > * Isso facilita backups, sincronização entre máquinas e mantém seu diretório pessoal organizado.
@@ -56,7 +56,7 @@ Neste repositório, focamos na organização do seu ambiente Bash dentro dos dir
 2.  **Configurações**:
   * Todos os scripts de inicialização, aliases e funções serão armazenados de forma organizada em `~/.config/bashrc/`.
 3.  **Executáveis**:
-  ** Scripts utilitários e wrappers (como os do `uv`) deste projeto residem em `~/bin/`, que o Git Bash adiciona ao seu `$PATH` automaticamente (convenção `/etc/profile`).
+  * Scripts utilitários e wrappers (como os do `uv`) deste projeto residem em `~/bin/`, que o Git Bash adiciona ao seu `$PATH` automaticamente (convenção `/etc/profile`).
   * O `~/.local/bin/` segue válido para binários instalados via Windows (ex.: `claude.exe` do instalador nativo do Claude Code) e é mantido no PATH pelo `bash-junctions.sh`.
 4.  **Ambiente**:
   * Variáveis de ambiente são definidas nos scripts `envs` para redirecionar ferramentas (como Terraform e Python) a usarem `~/.local/share` e `~/.local/state`, mantendo o raiz de seu diretório pessoal sempre limpo.
@@ -81,7 +81,7 @@ Nota: o conteúdo orientado a dados e exemplos foi movido para `src/home/.local/
 * `templates/`: templates de configuração e exemplos;
 * `utils/xdg-migrate.sh`: utilitário para migrar arquivos legados para locais XDG.
 
-A lista de arquivos instalada é controlada por `src/home/install-manifest.txt`.
+A lista de arquivos instalada é controlada por `scripts/install-manifest.txt`.
 
 ### 🔢 Ordem de Carregamento
 
@@ -122,7 +122,7 @@ Declaram funções complexas para automação. Atualmente:
 
 *   **node-extra-certs.sh**: Renova certificado raiz CA (cache de 7 dias via `find -mtime`), exporta `NODE_EXTRA_CA_CERTS` e `SSL_CERT_FILE`.
 *   **bash-junctions.sh**: Resolve `HOME`, garante `~/.local/bin` no PATH (para binários Windows-installed como `claude.exe`), cria junctions em `%USERPROFILE%` para `.aws`, `.cache`, `.certs`, `.claude`, `.config`, `.local`, `.ssh`.
-*   **extras.sh**: Desabilita telemetria de CLIs de nuvem.
+*   **telemetry.sh**: Desabilita telemetria de CLIs de nuvem.
 
 ### ⌨️ Scripts de Aliases (`-aliases.sh`)
 
@@ -138,21 +138,21 @@ Os comandos abaixo assumem que você está na raiz do repositório (onde está a
 1) (Opcional) Fazer um backup prévio antes de sobrescrever:
 
 ```bash
-# cria destino para backup
-mkdir -p $XDG_STATE_HOME/bashrc-for-devs
-
-# backup dos arquivos do bashrc-for-devs 
-tar -czf $XDG_STATE_HOME/bashrc/backup-$(date +%F).tar.gz -C "$HOME" .bashrc .bash_profile .config/bashrc bin
+bash scripts/backup.sh
 ```
 
-2) Usar o script de deploy do projeto. Ele lê `src/home/install-manifest.txt` como fonte de verdade:
+O script lê `scripts/install-manifest.txt` para identificar quais arquivos já existentes em
+`$HOME`/`$XDG_DATA_HOME` seriam sobrescritos pela instalação, e os arquiva em
+`$XDG_STATE_HOME/bashrc/backups/`. É independente de `install.sh` — pode ser executado
+isoladamente a qualquer momento.
+
+2) Usar o script de deploy do projeto. Ele lê `scripts/install-manifest.txt` como fonte de verdade:
 
 ```bash
-bash src/home/install.sh
+bash scripts/install.sh
 ```
 
-O script copia os arquivos listados em `src/home/install-manifest.txt` para o seu `$HOME`.
-```
+O script copia os arquivos listados em `scripts/install-manifest.txt` para o seu `$HOME`.
 
 3) Verificar a instalação:
 

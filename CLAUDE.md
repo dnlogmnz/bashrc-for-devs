@@ -11,6 +11,12 @@ O diretório `src/home/` espelha a estrutura alvo `~/` — os arquivos aqui são
 ## Estrutura do Repositório
 
 ```
+scripts/                       # Ferramentas do repositório — NÃO fazem parte do payload copiado para $HOME
+├── common.sh                  # Lógica compartilhada entre install.sh e backup.sh (manifesto, mapeamento XDG)
+├── install.sh                 # Instala/atualiza os arquivos de src/home/ em $HOME via install-manifest.txt
+├── install-manifest.txt       # Fonte de verdade: lista de paths (relativos a src/home/) a instalar
+└── backup.sh                  # Backup independente dos arquivos de $HOME que install.sh sobrescreveria
+
 src/home/
 ├── .config/bashrc/            # Scripts de inicialização sourced pelo ~/.bashrc (ordem detalhada abaixo)
 │   ├── docs/                  # Documentação e arquivos de ajuda do usuário
@@ -32,7 +38,7 @@ O `~/.bashrc` carrega os scripts `~/.config/bashrc/*.sh` em três etapas, ordena
 | Etapa | O que carrega | Por quê |
 |-------|---------------|---------|
 | 1. Núcleo (explícito, primeiro) | `bash-envs.sh`, `bash-functions.sh` | Definem `APPS_BASE`, variáveis básicas e as funções de exibição (`displayFailure`, etc.) usadas por todos os demais |
-| 2. Demais scripts (glob, alfabético) | Git, Python, uv, Node.js, Claude Code, certificados, extras | O padrão de nomes `tool-envs.sh` → `tool-folders.sh` faz o alfabético garantir que `-envs` venha antes de `-folders` |
+| 2. Demais scripts (glob, alfabético) | Git, Python, uv, Node.js, Claude Code, certificados, telemetria | O padrão de nomes `tool-envs.sh` → `tool-folders.sh` faz o alfabético garantir que `-envs` venha antes de `-folders` |
 | 3. Junctions (explícito, por último) | `bash-junctions.sh` | Depende de variáveis e diretórios definidos pelos demais scripts rc |
 
 A ordem crítica é expressa diretamente no `~/.bashrc` (núcleo na frente via `source` por nome, junctions no fim), e o restante segue o alfabético — os nomes dos scripts **não** usam mais prefixo numérico.

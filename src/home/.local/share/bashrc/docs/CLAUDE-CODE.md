@@ -1,7 +1,7 @@
 # ![Claude Code](./claude-code.ico) **Claude Code** no Bash RC for Devs
 ## Configuração, Instalação e Referência de Variáveis de Ambiente
 
-> **Última atualização:** abril/2026  
+> **Última atualização:** julho/2026  
 > **Público:** Desenvolvedores Windows 11 com Git Bash configurado no padrão XDG  
 > **Finalidade:** Este documento descreve em sequência todo o processo de configuração e instalação do Claude Code para ambiente com **Windows 11 e Git Bash**.  
 
