@@ -41,12 +41,12 @@ if [ -f "$file" ]; then
 fi
 
 # Históricos e estados
+display_move "$HOME/.bash_history" "$XDG_STATE_HOME/bashrc/history"
+display_move "$HOME/.lesshst" "$XDG_STATE_HOME/less/history"
+display_move "$HOME/.python_history" "$XDG_STATE_HOME/python/history"
 if [ -f "$HOME/.node_repl_history" ]; then
     display_move "$HOME/.node_repl_history" "$XDG_STATE_HOME/node/repl_history"
 fi
-display_move "$HOME/.lesshst" "$XDG_STATE_HOME/less/history"
-display_move "$HOME/.python_history" "$XDG_STATE_HOME/python/history"
-display_move "$HOME/.bash_history" "$XDG_STATE_HOME/bash/history"
 
 # npm / node / uv / python
 if [ -f "$HOME/.npmrc" ]; then

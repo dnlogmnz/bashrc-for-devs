@@ -21,7 +21,7 @@ export LC_ALL=pt_BR.UTF-8
 export HISTSIZE=10000
 export HISTFILESIZE=20000
 export HISTCONTROL=ignoredups:erasedups
-export HISTFILE="$XDG_STATE_HOME/bash/history"
+export HISTFILE="$XDG_STATE_HOME/bashrc/history"
 
 # Configurações para aplicativos GNU com Suporte Nativo ao XDG
 export LESSCHARSET=utf-8
