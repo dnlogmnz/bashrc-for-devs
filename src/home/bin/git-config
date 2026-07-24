@@ -5,7 +5,7 @@
 # Descrição: Configurações globais do Git (nome e email, e alguns parâmetros básicos)
 # Uso: git-config
 # Nota: Projetado para uso em shell interativo; aborta em shell não interativo.
-# ==========================================================================================
+# =============================================================================================
 
 # Verificar se estamos em ambiente interativo
 if [ ! -t 0 ]; then
@@ -31,3 +31,7 @@ displaySuccess "Sucesso" "Configurações globais aplicadas com sucesso!"
 
 # Chama git-info para exibir o resultado
 git-info
+
+#----------------------------------------------------------------------------------------------
+#--- Final do script git-config
+#----------------------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 # Script: ~/bin/helpers/uv-poc-envs.sh
 # Objetivo: Criar estrutura de ambientes em ./envs/ para Proof of Concept
 # Cria: envs/prod-a.sh, envs/prod-b.sh, envs/prod-c.sh
-# ==========================================================================================
+# =============================================================================================
 
 # Verificar se está em um projeto (verificar existência de pyproject.toml)
 if [ ! -f "pyproject.toml" ]; then
@@ -34,6 +34,6 @@ done
 
 displayAction "Estrutura de ambientes criada com sucesso!"
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script uv-poc-envs.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

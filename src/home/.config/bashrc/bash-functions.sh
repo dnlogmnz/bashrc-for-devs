@@ -3,10 +3,9 @@
 #
 # Script: ~/.config/bashrc/bash-functions.sh
 # Objetivo: definir funções para exibir mensagens
-# =============================================================================
+# =============================================================================================
 
 # Definir variaveis para cores das mensagens, usando códigos ANSI
-# Quoting ANSI-C ($'...') expande o \e sem subshell — $(printf ...) forçaria um fork por variável
 export colorTitle=$'\e[48;5;44;38;5;0m' # 5: paleta de 256 cores; 48: fundo, 44: Ciano; 38: frente, 0: preto
 export colorAction=$'\e[36m'     # 36: Ciano
 export colorScript=$'\e[33m'     # 33: Amarelo
@@ -33,6 +32,6 @@ export -f displaySuccess
 export -f displayFailure
 export -f displayWarning
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script bash-functions.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

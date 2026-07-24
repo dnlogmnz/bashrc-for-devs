@@ -4,7 +4,7 @@
 # Comando: git-info
 # Descrição: Exibe informações do Git (versão, configs globais, status do repo atual)
 # Uso: git-info
-# ==========================================================================================
+# =============================================================================================
 
 # Informações gerais do Git
 
@@ -39,3 +39,7 @@ if git rev-parse --git-dir &>/dev/null; then
   displayInfo "Arquivos em stash" "$(git stash show -p 2>/dev/null | wc -l) arquivo(s)"
   displayInfo "Remote repository" "$(git remote get-url origin 2>/dev/null || echo 'Não configurado')"
 fi
+
+#----------------------------------------------------------------------------------------------
+#--- Final do script git-info
+#----------------------------------------------------------------------------------------------

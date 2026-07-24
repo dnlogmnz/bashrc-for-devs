@@ -2,7 +2,7 @@
 # Projeto: bashrc-for-devs
 # Script: ~/.local/share/bashrc/utils/xdg-migrate.sh
 # Migrar arquivos de configuração e históricos para os diretórios XDG
-# =============================================================================
+# =============================================================================================
 
 set -euo pipefail
 
@@ -70,3 +70,7 @@ rmdir "$HOME/.npm" 2>/dev/null || true
 echo "---------------------------------------------------"
 echo "Migração concluída. Certifique-se de ter adicionado"
 echo "os 'exports' ao seu arquivo de inicialização."
+
+#----------------------------------------------------------------------------------------------
+#--- Final do script xdg-migrate.sh
+#----------------------------------------------------------------------------------------------

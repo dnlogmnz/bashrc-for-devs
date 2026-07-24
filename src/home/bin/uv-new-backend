@@ -4,7 +4,7 @@
 # Comando: uv-new-backend
 # Descrição: Cria um backend profissional UV com src layout, build system e estrutura para API/CLI
 # Uso: uv-new-backend <nome-do-projeto> [versao-python]
-# ==========================================================================================
+# =============================================================================================
 
 # Source das funções helper
 if [ -f "${HOME}/bin/helpers/uv-utils.sh" ]; then
@@ -30,6 +30,6 @@ _setup_common_env "$project_name" "$python_version" "package"
 echo ""
 displaySuccess "Concluído" "Backend inicializado em ./src/$project_name!"
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script uv-new-backend
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

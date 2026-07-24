@@ -3,13 +3,15 @@
 #
 # Script: ~/.config/bashrc/uv-envs.sh
 # Objetivo: definir variáveis de ambiente para o UV (Python Package Manager)
-# ==========================================================================================
+# =============================================================================================
+
 #
 # NOTA IMPORTANTE sobre instalação do Python neste computador:
 # - Python é gerenciado exclusivamente pelo uv neste computador.
 # - Não instale Python diretamente (python.org, winget, chocolatey, etc.).
 # - Use `uv python install` para instalar versões e `uv tool install` para ferramentas globais.
-# ==========================================================================================
+# =============================================================================================
+
 
 # Extra: versão mínima de Python a ser usada pelo "uv add"
 export UV_PYTHON_MIN_VER="3.14"
@@ -29,7 +31,7 @@ export UV_TOOL_DIR="${UV_HOME}/tools"          # ferramentas do uv: ruff, black,
 export UV_LINK_MODE="copy"                     # define como o UV deve tratar links simbólicos
 export UV_PYTHON_INSTALL_REGISTRY="1"          # registrar as instalações do Python no Windows Registry
 export UV_PYTHON_DOWNLOADS="manual"            # desabilitar os downloads automáticos do Python pelo uv
-export UV_NATIVE_TLS="1"                       # usar os certificados do Windows (SChannel)
+export UV_NATIVE_TLS="true"                    # usar os certificados do Windows (SChannel)
 
 # Habilitar o autocompletion para comandos uv e uvx
 # if [ -r "${UV_INSTALL_DIR}/uv" ]; then
@@ -39,6 +41,6 @@ export UV_NATIVE_TLS="1"                       # usar os certificados do Windows
 #     rm -f /tmp/uv-autocompletion.sh
 # fi
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script uv-envs.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

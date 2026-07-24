@@ -3,11 +3,11 @@
 #
 # Script: ~/.config/bashrc/node-envs.sh
 # Objetivo: definir variáveis de ambiente para o Node.js
-# ==========================================================================================
+# =============================================================================================
 #
 # Nota: Algumas variáveis não são "oficiais", ou seja, não são parte da documentação do
 #       Node.js e NPM, mas são usadas aqui seguindo práticas comuns da comunidade.
-# ==========================================================================================
+# =============================================================================================
 #
 # NOTA IMPORTANTE sobre NPM_CONFIG_PREFIX e isolamento por versão:
 #
@@ -26,7 +26,8 @@
 #   $APPS_BASE/nodejs/v20.20.1/npm-global/   ← Pacotes globais para v20.20.1
 #   $APPS_BASE/nodejs/v22.x.x/npm-global/    ← Pacotes globais para v22
 #   $APPS_BASE/nodejs/v24.14.0/npm-global/   ← Pacotes globais para v24.14.0
-# ==========================================================================================
+# =============================================================================================
+
 
 # Variáveis não oficiais para definir diretório onde estarão as versões do Node.js
 export NODE_HOME="$APPS_BASE/nodejs"         # Todas as versões do Node.js instaladas
@@ -36,13 +37,13 @@ export NODE_CURRENT="$NODE_HOME/current"     # Link simbólico ou junction para 
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"           # Cache de pacotes (compartilhado)
 export NPM_CONFIG_TMP="$XDG_CACHE_HOME/npm/tmp"         # Diretório temporário (compartilhado)
 export NPM_CONFIG_LOGS_DIR="$XDG_STATE_HOME/npm"        # Diretório de logs (compartilhado)
-export NPM_CONFIG_PREFIX="$NODE_CURRENT/npm-global"     # Instalação global de pacotes (isolado por versão)
+export NPM_CONFIG_PREFIX="$NODE_CURRENT/npm-global"     # Instalação global de pacotes
 export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
 export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
 
 # Variáveis oficiais para configurações do Node.js, com valores aderentes ao XDG
 export NODE_REPL_HISTORY="$XDG_STATE_HOME/node/repl_history"
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script node-envs.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 #
 # Script: ~/.config/bashrc/bash-junctions.sh
 # Objetivo: criar junctions em %USERPROFILE% para pastas dotfile reais em $HOME.
-# =============================================================================
+# =============================================================================================
 
 # Normalizar o caminho do USERPROFILE para notação Linux/Unix
 _usr_profile="$(cygpath -u "$USERPROFILE")"
@@ -20,7 +20,9 @@ export HOME="$(_resolve_home)"
 # Garantir $USERPROFILE/.local/bin no PATH
 [ -d "$_usr_profile/.local/bin" ] || mkdir -p "$_usr_profile/.local/bin"
 if [[ ":$PATH:" != *":$_usr_profile/.local/bin:"* ]]; then
-    displayFailure "Windows" "Variáveis de ambiente para sua conta: adicionar \"$(cygpath -w "$_usr_profile/.local/bin")\" ao PATH"
+    displayFailure \
+        "Windows" \
+        "Variáveis de ambiente para sua conta: adicionar \"$(cygpath -w "$_usr_profile/.local/bin")\" ao PATH"
     export PATH="$_usr_profile/.local/bin:$PATH"
 fi
 
@@ -51,7 +53,9 @@ ensure_junction() {
             displaySuccess "Windows" "Junção criada: $src_w <<===>> $tgt_w"
         else
             err="$(printf '%s\n' "$err" | sed 's/\r$//' | grep -av '^$' | head -1)"
-            displayFailure "Windows" "Erro ao criar junção para '$src_w': ${err:-comando falhou}"
+            displayFailure \
+                "Windows" \
+                "Erro ao criar junção para '$src_w': ${err:-comando falhou}"
         fi
     fi
 }
@@ -71,6 +75,6 @@ unset _usr_profile
 # Limpar funções auxiliares do escopo global
 unset -f _resolve_home ensure_junction
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script bash-junctions.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

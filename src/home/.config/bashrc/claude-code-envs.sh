@@ -3,16 +3,16 @@
 #
 # Script: ~/.config/bashrc/claude-code-envs.sh
 # Objetivo: validar variáveis de ambiente e configura aliases para uso do Claude Code.
-# ==========================================================================================
+# =============================================================================================
 
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 # Verificação inicial: o binário precisa estar disponível em $HOME/.local/bin
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 if [[ ! -x "$HOME/.local/bin/claude.exe" ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 # CLAUDE_CONFIG_DIR
 # O Claude Code procura seu diretório de configuração na seguinte ordem:
 #   1. Variável CLAUDE_CONFIG_DIR (se já definida antes de abrir o shell)
@@ -20,7 +20,7 @@ fi
 #
 # Se você adota o padrão XDG de diretórios em seu computador, a variável deve
 # apontar para $XDG_CONFIG_HOME/claude (geralmente $HOME/.config/claude).
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 if [[ -z "$CLAUDE_CONFIG_DIR" ]]; then
     if [[ -n "$XDG_CONFIG_HOME" ]]; then
         export CLAUDE_CONFIG_DIR="$XDG_CONFIG_HOME/claude"
@@ -34,9 +34,9 @@ if [[ "$CLAUDE_CONFIG_DIR" == [A-Za-z]:* ]]; then
     export CLAUDE_CONFIG_DIR="$(cygpath -u -- "$CLAUDE_CONFIG_DIR")"
 fi
 
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 # Validação das configurações obrigatórias e recomendadas
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 
 # Verdadeiro se a chave está definida no ambiente OU presente no settings.json.
 # Lê 'settings_content' do escopo do chamador (escopo dinâmico do bash).
@@ -56,16 +56,18 @@ _claude_validate_required_config() {
     local settings_content=""
     [[ -f "$settings_json" ]] && settings_content="$(< "$settings_json")"
 
-    # --- CLAUDE_CODE_GIT_BASH_PATH -------------------------------------------
+    # --- CLAUDE_CODE_GIT_BASH_PATH -----------------------------------------------------------
     # Validação em ordem de prioridade (linha de comando é ignorada aqui):
     #   1. Variável de ambiente → se definida, foi escolha consciente do dev → OK
     #   2. settings.json        → local esperado pelo projeto (bloco "env")  → OK
     # Não estando em nenhum nível, falha apontando para o settings.json.
     if ! _claude_is_set CLAUDE_CODE_GIT_BASH_PATH; then
-        displayFailure "Claude Code" "CLAUDE_CODE_GIT_BASH_PATH não definida → adicione no bloco \"env\" de $settings_json"
+        displayFailure \
+            "Claude Code" \
+            "CLAUDE_CODE_GIT_BASH_PATH não definida → adicione no bloco \"env\" de $settings_json"
     fi
 
-    # --- Autenticação -------------------------------------------------------
+    # --- Autenticação ------------------------------------------------------------------------
     # Métodos explícitos, mutuamente exclusivos (apenas UM deve estar definido):
     #   - ANTHROPIC_API_KEY        → API Key do Console da Anthropic
     #   - ANTHROPIC_AUTH_TOKEN     → Token de AI Gateway / LiteLLM
@@ -78,7 +80,7 @@ _claude_validate_required_config() {
     # conflito: o token salvo em disco coexiste de forma dormente com um método
     # explícito (a API Key/provider vence). Só importa quando nenhum método
     # explícito foi definido.
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------
     local auth_methods=()
     _claude_is_set ANTHROPIC_API_KEY       && auth_methods+=("ANTHROPIC_API_KEY")
     _claude_is_set ANTHROPIC_AUTH_TOKEN    && auth_methods+=("ANTHROPIC_AUTH_TOKEN")
@@ -90,12 +92,16 @@ _claude_validate_required_config() {
 
     if (( n > 1 )); then
         # Conflito: mais de um provedor/credencial explícito definido.
-        displayFailure "Claude Code" "Múltiplos métodos de autenticação definidos — use apenas um: ${auth_methods[*]}"
+        displayFailure \
+            "Claude Code" \
+            "Múltiplos métodos de autenticação definidos — use apenas um: ${auth_methods[*]}"
     fi
 
-    # --- settings.json -------------------------------------------------------
+    # --- settings.json ------------------------------------------------------------------------
     if [[ ! -f "$settings_json" ]]; then
-        displayWarning "Claude Code" "settings.json não encontrado: $settings_json"
+        displayWarning \
+            "Claude Code" \
+            "settings.json não encontrado: $settings_json"
     fi
 
 }
@@ -105,6 +111,6 @@ _claude_validate_required_config
 # Limpar funções auxiliares do escopo global
 unset -f _claude_validate_required_config _claude_is_set
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script claude-code-envs.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

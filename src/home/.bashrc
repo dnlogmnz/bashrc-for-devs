@@ -2,17 +2,26 @@
 # Projeto: bashrc-for-devs
 #
 # Script: ~/.bashrc
-# Descrição: Define variáveis XDG e carrega os scripts rc.
-# Nota: Executado por shells interativos.
-# =============================================================================
+# Descrição: Define variáveis XDG e carrega os scripts rc em shells interativos.
+# =============================================================================================
+#
+# NOTA IMPORTANTE:
+# Este script assume que as seguintes variáveis podem ter sido definidas no aplicativo
+# "Editar varíaveis de ambiente para sua conta" do Windows:
+#   - XDG_CACHE_HOME
+#   - XDG_CONFIG_HOME
+#   - XDG_DATA_HOME
+#   - XDG_STATE_HOME
+# =============================================================================================
 
-# Resolve os defaults XDG (já em formato Unix na maioria dos casos)
+# Define defaults para variáveis XDG considerando o caso em que já possam ter sido definidas no ambiente.
 _xdg_cache="${XDG_CACHE_HOME:-$HOME/.cache}"
 _xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
 _xdg_data="${XDG_DATA_HOME:-$HOME/.local/share}"
 _xdg_state="${XDG_STATE_HOME:-$HOME/.local/state}"
 
-# cygpath só é chamado se algum valor vier em formato Windows (evita fork no caso comum)
+# Ajusta os caminhos das variáveis XDG para formato Linux/Unix.
+# Evita fork do "cygpath" se variáveis já estiverem no formato esperado.
 if [[ "$_xdg_cache" == [A-Za-z]:* || "$_xdg_config" == [A-Za-z]:* || \
       "$_xdg_data"  == [A-Za-z]:* || "$_xdg_state"  == [A-Za-z]:* ]]; then
     mapfile -t _xdg < <(cygpath -u "$_xdg_cache" "$_xdg_config" "$_xdg_data" "$_xdg_state")
@@ -50,6 +59,6 @@ source "$XDG_CONFIG_HOME/bashrc/bash-junctions.sh"
 # Limpa variáveis do escopo global
 unset rc _xdg _xdg_cache _xdg_config _xdg_data _xdg_state
 
-#--------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script ~/.bashrc
-#--------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

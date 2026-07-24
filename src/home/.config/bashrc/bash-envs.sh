@@ -3,15 +3,20 @@
 #
 # Script: ~/.config/bashrc/bash-envs.sh
 # Objetivo: definir aliases e variáveis de ambiente para o Git Bash
-# ==========================================================================================
-cd $HOME
+# =============================================================================================
+#
+# NOTA IMPORTANTE:
+# Este script assume que as seguintes variáveis podem ter sido definidas no aplicativo
+# "Editar varíaveis de ambiente para sua conta" do Windows:
+#   - HOME     : D:\$USERNAME
+#   - APPS_BASE: D:\$USERNAME\Apps
+# =============================================================================================
+
+# Posiciona no "$HOME", exceto em shell integrado do VSCode (que já posiciona no workspace)
+[ "$TERM_PROGRAM" == "vscode" ] || cd $HOME
 
 # Diretório base para aplicações e ferramentas
-# cygpath só é chamado se o valor vier em formato Windows (evita fork no caso comum)
-_apps_base="${APPS_BASE:-/d/${USERNAME}/Apps}"
-[[ "$_apps_base" == [A-Za-z]:* ]] && _apps_base="$(cygpath -u -- "$_apps_base")"
-export APPS_BASE="$_apps_base"
-unset _apps_base
+export APPS_BASE="$(cygpath -u -- "${APPS_BASE:-/d/${USERNAME}/Apps}")"
 
 # Configurações de locale
 export LANG=pt_BR.UTF-8
@@ -40,6 +45,6 @@ alias la="/usr/bin/ls -lA --color=auto --show-control-chars"
 alias grep="/usr/bin/grep --color=auto"
 alias npp='/usr/bin/start $APPS_BASE/Notepad++/notepad++.exe "$@"'
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
 #--- Final do script bash-envs.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------

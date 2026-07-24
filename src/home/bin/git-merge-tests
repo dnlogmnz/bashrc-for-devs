@@ -4,7 +4,7 @@
 # Comando: git-merge-tests
 # Descrição: Atualiza branches de CI/CD e gera relatórios de merge (staging -> main)
 # Uso: git-merge-tests
-# ==========================================================================================
+# =============================================================================================
 
 # Validação inicial
 if ! git rev-parse --git-dir &>/dev/null; then
@@ -60,3 +60,7 @@ if [ -f "$report_titles" ] && [ -f "$report_files" ]; then
 else
     displayFailure "Erro" "Falha ao gerar os arquivos de relatório."
 fi
+
+#----------------------------------------------------------------------------------------------
+#--- Final do script git-merge-tests
+#----------------------------------------------------------------------------------------------

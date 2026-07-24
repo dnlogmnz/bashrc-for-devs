@@ -4,7 +4,7 @@
 # Comando: uv-new-lib
 # Descrição: Cria uma biblioteca Python reutilizável com UV, preparada para distribuição (PyPI)
 # Uso: uv-new-lib <nome-do-projeto> [versao-python]
-# ==========================================================================================
+# =============================================================================================
 
 # Source das funções helper
 if [ -f "${HOME}/bin/helpers/uv-utils.sh" ]; then
@@ -27,6 +27,6 @@ _setup_common_env "$project_name" "$python_version" "package"
 echo ""
 displaySuccess "Concluído" "Biblioteca criada com estrutura src/!"
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script uv-new-lib
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------

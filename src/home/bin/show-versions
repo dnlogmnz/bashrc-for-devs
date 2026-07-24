@@ -4,7 +4,7 @@
 # Comando: show-versions
 # Descrição: Mostra versões de várias ferramentas (bash, python, node, npm).
 # Uso: show-versions
-# ==========================================================================================
+# =============================================================================================
 
 echo ""
 displayAction "Diretório de instalação dos Apps"
@@ -28,3 +28,7 @@ displayInfo "npm" "$(npm --version 2>/dev/null || echo 'Não encontrado')"
 displayInfo "UV" "$(uv --version 2>/dev/null || echo 'Não encontrado')"
 displayInfo "Python (uv managed)"
 echo "$(uv python list --only-installed 2>/dev/null || echo \"'uv' não encontrado\")"
+
+#----------------------------------------------------------------------------------------------
+#--- Final do script show-versions
+#----------------------------------------------------------------------------------------------

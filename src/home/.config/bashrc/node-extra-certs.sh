@@ -3,7 +3,7 @@
 #
 # Script: ~/.config/bashrc/node-extra-certs.sh
 # Objetivo: gerencia o certificado raiz CA para uso de ferramentas baseadas em Node.js
-# ==========================================================================================
+# =============================================================================================
 #
 # QUANDO ESTE SCRIPT É NECESSÁRIO:
 #   - Você está em rede corporativa com proxy de inspeção SSL (ex.: Zscaler, CrowdStrike)
@@ -13,7 +13,7 @@
 #   - Instalação nativa do Claude Code (recomendada): integra automaticamente
 #     a loja de certificados do Windows — sem configuração extra.
 #   - Assinantes Pro/Max em rede doméstica ou corporativa sem inspeção SSL.
-# ==========================================================================================
+# =============================================================================================
 
 cert_dir="${XDG_CONFIG_HOME:-$HOME/.config}/certs"
 cert_file="$cert_dir/ca_root.pem"
@@ -33,7 +33,9 @@ if [ ! -f "$cert_file" ] || (( _cert_now - _cert_stamp > 7*86400 )); then
     # A lógica extrai apenas o ÚLTIMO certificado da cadeia (o certificado raiz CA)
     printf "Q" \
     | openssl s_client -showcerts -timeout -connect google.com:443 2>/dev/null \
-    | awk '/BEGIN CERTIFICATE/{cert=""; inside=1} inside{cert=cert $0 "\n"} /END CERTIFICATE/{last_cert=cert; inside=0} END{printf "%s", last_cert}' \
+    | awk '/BEGIN CERTIFICATE/{cert=""; inside=1} inside{cert=cert $0 "\n"}
+           /END CERTIFICATE/{last_cert=cert; inside=0}
+           END{printf "%s", last_cert}' \
     > "$cert_tmp"
 
     # Atualiza o arquivo de certificado se o download foi bem-sucedido;
@@ -42,7 +44,9 @@ if [ ! -f "$cert_file" ] || (( _cert_now - _cert_stamp > 7*86400 )); then
         mv "$cert_tmp" "$cert_file"
         printf '%s' "$_cert_now" > "$cert_stamp"
     else
-        displayFailure "Certificado raiz" "Não foi possível obter certificado - verifique a conectividade"
+        displayFailure \
+            "Certificado raiz" \
+            "Não foi possível obter certificado - verifique a conectividade"
         rm -f "$cert_tmp"
     fi
 fi
@@ -57,6 +61,6 @@ fi
 # Limpa variáveis do escopo global
 unset _cert_now _cert_stamp cert_dir cert_file cert_stamp cert_tmp
 
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 #--- Final do script node-extra-certs.sh
-#-------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
